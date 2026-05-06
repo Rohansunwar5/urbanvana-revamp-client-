@@ -13,7 +13,7 @@
 
 @theme {
   /* Core surface / text */
-  --color-background:          #FFFFFF;
+  --color-background:          #f2f0eb;
   --color-foreground:          #002304;
 
   /* Primary — CTA green */
@@ -33,11 +33,11 @@
   --color-accent-foreground:   #002304;
 
   /* Card */
-  --color-card:                #FFFFFF;
+  --color-card:                #ffffff;
   --color-card-foreground:     #002304;
 
   /* Popover */
-  --color-popover:             #FFFFFF;
+  --color-popover:             #ffffff;
   --color-popover-foreground:  #002304;
 
   /* Destructive */
@@ -72,8 +72,8 @@
   --color-white:         #FFFFFF;
 
   /* ── Semantic Surface Tokens ── */
-  --color-bg:           #FFFFFF;
-  --color-bg-subtle:    #F4FFF9;   /* very light tint — alternating section bg */
+  --color-bg:           #f2f0eb;   /* Starbucks warm cream canvas */
+  --color-bg-subtle:    #edebe9;   /* Starbucks ceramic — alternating section bg */
   --color-bg-surface:   #DCFFED;
   --color-bg-inverse:   #002304;
 
@@ -83,8 +83,8 @@
   --color-text-muted:   color-mix(in srgb, #005528 70%, transparent);
 
   /* ── Semantic Border Tokens ── */
-  --color-border:        #DCFFED;
-  --color-border-strong: color-mix(in srgb, #005528 30%, transparent);
+  --color-border:        rgba(0,35,4,0.09);   /* Notion/Starbucks warm hairline */
+  --color-border-strong: rgba(0,35,4,0.16);   /* stronger hairline for cards */
 
   /* ── CTA Tokens ── */
   --color-cta:       #059669;
@@ -115,8 +115,16 @@
   /* ── Line Heights ── */
   --line-height-display: 1.1;
   --line-height-heading: 1.2;
-  --line-height-body:    1.6;
+  --line-height-body:    1.55;   /* Notion: tighter, more editorial */
   --line-height-tight:   1.3;
+
+  /* ── Letter Spacing (Notion negative tracking on display sizes) ── */
+  --tracking-display: -0.035em;
+  --tracking-h1:      -0.028em;
+  --tracking-h2:      -0.022em;
+  --tracking-h3:      -0.015em;
+  --tracking-h4:      -0.008em;
+  --tracking-body:     0em;
 
   /* ── Spacing Scale (4px base) ── */
   --spacing-1:  0.25rem;   /* 4px  */
@@ -138,13 +146,13 @@
   --radius-xl:   24px;
   --radius-full: 9999px;
 
-  /* ── Brand Shadows (ink-tinted, not pure black) ── */
-  --shadow-xs:     0 1px 3px  color-mix(in srgb, #002304 6%, transparent);
-  --shadow-sm:     0 4px 12px color-mix(in srgb, #002304 8%, transparent);
-  --shadow-md:     0 8px 24px color-mix(in srgb, #002304 10%, transparent);
-  --shadow-lg:     0 16px 40px color-mix(in srgb, #002304 12%, transparent);
-  --shadow-xl:     0 24px 64px color-mix(in srgb, #002304 14%, transparent);
-  --shadow-inset:  inset 0 2px 4px color-mix(in srgb, #002304 6%, transparent);
+  /* ── Brand Shadows — Starbucks layered whisper-soft ── */
+  --shadow-xs:    0 1px 2px rgba(0,35,4,0.04), 0 1px 4px rgba(0,35,4,0.03);
+  --shadow-sm:    0 1px 3px rgba(0,35,4,0.05), 0 4px 12px rgba(0,35,4,0.06);
+  --shadow-md:    0 2px 4px rgba(0,35,4,0.05), 0 8px 20px rgba(0,35,4,0.08), 0 16px 32px rgba(0,35,4,0.04);
+  --shadow-lg:    0 4px 6px rgba(0,35,4,0.04), 0 12px 28px rgba(0,35,4,0.09), 0 24px 48px rgba(0,35,4,0.06);
+  --shadow-xl:    0 8px 10px rgba(0,35,4,0.04), 0 20px 40px rgba(0,35,4,0.10), 0 40px 72px rgba(0,35,4,0.07);
+  --shadow-inset: inset 0 1px 3px rgba(0,35,4,0.06), inset 0 1px 1px rgba(0,35,4,0.04);
 
   /* ── Motion Tokens ── */
   --duration-fast:  150ms;
@@ -201,11 +209,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Heading defaults ── */
+/* ── Heading defaults — Notion negative tracking ── */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   line-height: var(--line-height-heading);
 }
+
+h1 { letter-spacing: var(--tracking-h1); }
+h2 { letter-spacing: var(--tracking-h2); }
+h3 { letter-spacing: var(--tracking-h3); }
+h4 { letter-spacing: var(--tracking-h4); }
 
 /* ── Focus ring — brand-consistent ── */
 :focus-visible {
@@ -362,7 +375,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 html[data-zone-lit="true"] .illuminated-section {
-  background-color: #D7EDE3;
+  background-color: #d4e9e2;   /* Starbucks light-green tint on warm canvas */
 }
 
 /* ─────────────────────────────────────────────
@@ -425,11 +438,11 @@ html[data-zone-lit="true"] .illuminated-section {
 }
 
 :root {
-  --background: oklch(1 0 0);
+  --background: #f2f0eb;
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: #ffffff;
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: #ffffff;
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);

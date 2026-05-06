@@ -166,7 +166,7 @@ function ProductCarousel() {
                   className="object-contain"
                   style={{ mixBlendMode: "multiply" }}
                   draggable={false}
-                  loading={i === 0 ? "eager" : "lazy"}
+                  priority={i === 0}
                 />
               </div>
             </div>
@@ -189,7 +189,7 @@ function ProductCarousel() {
         </p>
         <Link
           href={PRODUCTS[active].href}
-          className="mt-5 inline-flex items-center gap-2 rounded-[10px] border-2 border-[var(--color-ink)] px-7 py-3 font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-ink)] transition-all duration-200 hover:bg-[var(--color-ink)] hover:text-white"
+          className="mt-5 inline-flex items-center gap-2 rounded-full border-2 border-[var(--color-ink)] px-7 py-3 font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-ink)] transition-all duration-200 active:scale-[0.95] hover:bg-[var(--color-ink)] hover:text-white"
         >
           Shop Now
           <ArrowRight size={14} strokeWidth={2.5} aria-hidden="true" />

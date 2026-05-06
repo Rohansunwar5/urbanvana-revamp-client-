@@ -25,10 +25,13 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react"],
   },
 
+  /* Native Node.js modules — must run in Node.js runtime, not edge */
+  serverExternalPackages: ["mongoose", "bcrypt", "aws-sdk", "winston", "winston-cloudwatch"],
+
   /* Compress responses */
   compress: true,
 
-  /* Security headers */
+  /* Security & CORS headers */
   async headers() {
     return [
       {
@@ -40,6 +43,23 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: process.env.CORS_ORIGINS ?? "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET,POST,PATCH,PUT,DELETE,OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Authorization, Content-Type, x-session-id",
           },
         ],
       },

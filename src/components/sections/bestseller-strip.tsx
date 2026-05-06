@@ -54,7 +54,7 @@ function formatINR(n: number) {
 
 function BestsellerStrip() {
   return (
-    <section aria-label="Bestselling products" className="illuminated-section bg-[#F2F4F2] py-20 md:py-28">
+    <section aria-label="Bestselling products" className="illuminated-section bg-[var(--color-bg-subtle)] py-20 md:py-28">
       <Container>
 
         {/* Section header */}
@@ -120,7 +120,7 @@ function BestsellerStrip() {
                           sizes="(max-width: 640px) 80vw, 30vw"
                           className="object-contain"
                           style={{ mixBlendMode: "multiply" }}
-                          loading={i === 0 ? "eager" : "lazy"}
+                          priority={i === 0}
                         />
                       </div>
                     </div>
@@ -158,7 +158,7 @@ function BestsellerStrip() {
                     <div className="mt-auto flex flex-col gap-2 pt-2">
                       <AddToCartBtn
                         productId={p.id}
-                        className="rounded-lg bg-[var(--color-ink)] font-heading text-xs font-bold uppercase tracking-widest text-white hover:bg-[var(--color-primary-dark)] focus-visible:ring-[var(--color-ink)]"
+                        className="rounded-full bg-[var(--color-ink)] font-heading text-xs font-bold uppercase tracking-widest text-white hover:bg-[var(--color-primary-dark)] focus-visible:ring-[var(--color-ink)]"
                       />
                       <Link
                         href={`/shop/${p.slug}`}

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Star, ChevronRight } from "lucide-react"
@@ -10,6 +11,34 @@ import Image from "next/image"
 
 export function generateStaticParams() {
   return PRODUCTS.map((p) => ({ slug: p.slug }))
+}
+
+/* ── Per-product metadata ───────────────────────────────────────────── */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const product = getProductBySlug(slug)
+  if (!product) return {}
+  return {
+    title: product.name,
+    description: product.description,
+    openGraph: {
+      title: `${product.name} | Urbanvana`,
+      description: product.description,
+      images: [{ url: product.image, alt: product.name }],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | Urbanvana`,
+      description: product.description,
+      images: [product.image],
+    },
+  }
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
@@ -92,10 +121,38 @@ export default async function ProductPage({
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0
 
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    name: product.name,
+    image: product.image,
+    description: product.description,
+    brand: { "@type": "Brand", name: "Urbanvana" },
+    ...(product.rating && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: product.rating,
+        reviewCount: product.reviewCount ?? 0,
+      },
+    }),
+    offers: {
+      "@type": "Offer",
+      price: product.price,
+      priceCurrency: "INR",
+      availability: product.stock === "Out of Stock"
+        ? "https://schema.org/OutOfStock"
+        : "https://schema.org/InStock",
+    },
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="bg-white pt-8 md:pt-12">
+      <section className="bg-[var(--color-bg)] pt-8 md:pt-12">
         <Container>
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-1.5">
@@ -240,7 +297,7 @@ export default async function ProductPage({
       </section>
 
       {/* ── Tabs section ─────────────────────────────────────────────── */}
-      <section aria-label="Product details" className="border-t border-[var(--color-border-strong)] bg-white py-12 md:py-16">
+      <section aria-label="Product details" className="border-t border-[var(--color-border-strong)] bg-[var(--color-bg)] py-12 md:py-16">
         <Container>
           <PDPTabs
             longDescription={product.longDescription}

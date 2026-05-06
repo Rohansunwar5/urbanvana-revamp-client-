@@ -23,6 +23,7 @@ function NewsletterBand() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (loading || submitted) return
     setError("")
 
     if (!email.trim()) {
@@ -110,12 +111,12 @@ function NewsletterBand() {
                     aria-invalid={!!error}
                     disabled={loading}
                     className={cn(
-                      "h-14 w-full rounded-[10px] border-0 bg-white px-5",
+                      "h-14 w-full rounded-full border-0 bg-white px-6",
                       "font-body text-base text-[var(--color-text-primary)]",
                       "placeholder:text-[var(--color-text-muted)]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
                       "disabled:opacity-60",
-                      "sm:rounded-r-none sm:rounded-l-[10px]",
+                      "sm:rounded-r-none sm:rounded-l-full",
                       error && "ring-2 ring-red-300"
                     )}
                   />
@@ -127,13 +128,13 @@ function NewsletterBand() {
                   disabled={loading}
                   className={cn(
                     "flex h-14 items-center justify-center gap-2 px-7",
-                    "rounded-[10px] bg-[var(--color-primary-dark)] text-white",
+                    "rounded-full bg-[var(--color-primary-dark)] text-white",
                     "font-body text-sm font-semibold",
-                    "hover:bg-[var(--color-ink)] transition-colors duration-[150ms]",
+                    "hover:bg-[var(--color-ink)] transition-all duration-[150ms] active:scale-[0.95]",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
                     "disabled:opacity-60 disabled:cursor-not-allowed",
                     "cursor-pointer",
-                    "sm:rounded-l-none sm:rounded-r-[10px]"
+                    "sm:rounded-l-none sm:rounded-r-full"
                   )}
                   aria-label={loading ? "Subscribing…" : "Subscribe to newsletter"}
                 >

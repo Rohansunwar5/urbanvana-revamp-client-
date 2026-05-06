@@ -159,7 +159,7 @@ function ReviewCard({ name, location, rating, productName, productHref, productI
 
 function Testimonials() {
   return (
-    <section aria-label="Customer testimonials" className="overflow-hidden bg-[#F2F4F2] py-16 md:py-24">
+    <section aria-label="Customer testimonials" className="overflow-hidden bg-[var(--color-bg-subtle)] py-16 md:py-24">
 
       {/* ── Centered header ── */}
       <Container>

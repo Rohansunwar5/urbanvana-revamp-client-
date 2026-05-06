@@ -19,7 +19,7 @@ type BtnState = "idle" | "loading" | "success"
    - idle: primary green, ShoppingCart icon
    - loading: spinner, disabled, "Adding…" sr text
    - success: pale-green bg + primary text + Check icon, 1.8s then resets
-   - active:scale-[0.98] press feedback consistent with Button
+   - active:scale-[0.95] press feedback consistent with Button
    - min-height 48px touch target
    - never blocks interaction longer than necessary
 ───────────────────────────────────────────────────────────────────────── */
@@ -76,7 +76,7 @@ function AddToCartBtn({
       className={cn(
         /* base */
         "relative flex w-full items-center justify-center gap-2",
-        "min-h-[48px] rounded-[10px] px-5",
+        "min-h-[48px] rounded-full px-5",
         "font-body text-sm font-semibold leading-none",
         "transition-all duration-[150ms]",
         "focus-visible:outline-none focus-visible:ring-2",
@@ -86,7 +86,7 @@ function AddToCartBtn({
         !isSuccess && [
           "bg-[var(--color-primary)] text-white",
           "hover:bg-[var(--color-primary-dark)]",
-          "active:scale-[0.98]",
+          "active:scale-[0.95]",
           isDisabled && "opacity-60 cursor-not-allowed active:scale-100",
         ],
         /* success */

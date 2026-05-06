@@ -92,7 +92,7 @@ function HeroSection() {
             <div className="pt-2">
               <Link
                 href="/shop/towers"
-                className="inline-flex items-center gap-2.5 rounded-[10px] bg-white px-8 py-[15px] font-heading text-sm font-bold uppercase tracking-widest text-[var(--color-ink)] transition-colors duration-150 hover:bg-[var(--color-primary-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-ink)]"
+                className="inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-[15px] font-heading text-sm font-bold uppercase tracking-widest text-[var(--color-ink)] transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-ink)]"
               >
                 Shop Towers
                 <ArrowRight size={15} strokeWidth={2.5} aria-hidden="true" />

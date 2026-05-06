@@ -38,7 +38,7 @@ function TrustBar() {
   return (
     <section
       aria-label="Why growers trust Urbanvana"
-      className="border-b border-[var(--color-border)] bg-white py-14"
+      className="border-b border-[var(--color-border)] bg-[var(--color-bg)] py-14"
     >
       <Container>
         <ul

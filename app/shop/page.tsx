@@ -120,7 +120,7 @@ function PLPCard({ product }: { product: Product }) {
         <div className="mt-auto flex flex-col gap-2 pt-1">
           <AddToCartBtn
             productId={product.id}
-            className="rounded-lg bg-[var(--color-ink)] font-heading text-xs font-bold uppercase tracking-widest text-white hover:bg-[var(--color-primary-dark)] focus-visible:ring-[var(--color-ink)]"
+            className="rounded-full bg-[var(--color-ink)] font-heading text-xs font-bold uppercase tracking-widest text-white hover:bg-[var(--color-primary-dark)] focus-visible:ring-[var(--color-ink)]"
           />
           <Link
             href={`/shop/${product.slug}`}
@@ -153,7 +153,7 @@ function FilterBar({
   const sortLabel = SORT_OPTIONS.find((o) => o.value === sort)?.label ?? "Sort"
 
   return (
-    <div className="sticky top-[64px] z-[40] border-b border-[var(--color-border-strong)] bg-white/95 backdrop-blur-sm">
+    <div className="sticky top-[68px] md:top-[72px] z-[30] border-b border-[var(--color-border-strong)] bg-[var(--color-bg)]/95 backdrop-blur-sm">
       <Container>
         <div className="flex items-center justify-between gap-4 py-3">
           {/* Category pills */}
@@ -261,7 +261,7 @@ export default function ShopPage() {
   return (
     <>
       {/* Page header */}
-      <section className="border-b border-[var(--color-border-strong)] bg-white pt-16 pb-10 md:pt-20 md:pb-12">
+      <section className="border-b border-[var(--color-border-strong)] bg-[var(--color-bg)] pt-16 pb-10 md:pt-20 md:pb-12">
         <Container>
           <p className="mb-3 font-heading text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-primary)]">
             Our Products
@@ -290,7 +290,7 @@ export default function ShopPage() {
       />
 
       {/* Product grid */}
-      <section aria-label={`${activeCategory} products`} className="bg-white py-8 md:py-12">
+      <section aria-label={`${activeCategory} products`} className="bg-[var(--color-bg)] py-8 md:py-12">
         <Container>
           {products.length === 0 ? (
             <div className="flex flex-col items-center gap-4 py-24 text-center">

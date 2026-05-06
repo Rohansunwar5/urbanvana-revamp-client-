@@ -116,7 +116,7 @@ function EmptyCart({ onClose }: { onClose: () => void }) {
       </div>
       <button
         onClick={onClose}
-        className="inline-flex items-center gap-2 rounded-[8px] bg-[var(--color-ink)] px-6 py-3 font-heading text-xs font-bold uppercase tracking-widest text-white transition-colors duration-150 hover:bg-[var(--color-primary-dark)]"
+        className="inline-flex items-center gap-2 rounded-full bg-[var(--color-ink)] px-6 py-3 font-heading text-xs font-bold uppercase tracking-widest text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)]"
       >
         Start Shopping
         <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
@@ -270,7 +270,7 @@ export function CartDrawer() {
                 <Link
                   href="/checkout"
                   onClick={closeCart}
-                  className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[var(--color-primary)] px-6 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-colors duration-150 hover:bg-[var(--color-primary-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-6 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
                 >
                   Proceed to Checkout
                   <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />

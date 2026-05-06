@@ -18,9 +18,11 @@ const inter = Inter({
 /* Secondary — Krub: friendly rounded sans, body copy */
 const krub = Krub({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-krub",
   display: "swap",
+  preload: true,
+  fallback: ["system-ui", "sans-serif"],
 })
 
 export const metadata: Metadata = {

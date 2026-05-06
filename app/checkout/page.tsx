@@ -191,7 +191,7 @@ export default function CheckoutPage() {
         </div>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--color-primary)] px-8 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white hover:bg-[var(--color-primary-dark)]"
+          className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-8 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)]"
         >
           Browse Products
         </Link>
@@ -216,7 +216,7 @@ export default function CheckoutPage() {
         </div>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--color-ink)] px-8 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white hover:bg-[var(--color-primary-dark)]"
+          className="inline-flex items-center gap-2 rounded-full bg-[var(--color-ink)] px-8 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)]"
         >
           Continue Shopping
         </Link>
@@ -331,7 +331,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="flex w-full items-center justify-center gap-3 rounded-[10px] bg-[var(--color-primary)] px-8 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-colors duration-150 hover:bg-[var(--color-primary-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex w-full items-center justify-center gap-3 rounded-full bg-[var(--color-primary)] px-8 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-live="polite"
             >
               {submitting ? (

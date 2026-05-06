@@ -79,13 +79,19 @@ function Navbar() {
           scrolled ? "px-4 pt-3 md:px-8 md:pt-4" : "px-0 pt-0"
         )}
       >
-        {/* Floating pill — gets background + radius only when scrolled */}
+        {/* Floating pill: shape is scroll-driven; background is transparent only on home+unscrolled */}
         <div
           className={cn(
             "transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            scrolled
-              ? "rounded-[16px] bg-[#005528]/95 backdrop-blur-xl border border-white/[0.1] shadow-[0_8px_40px_rgba(0,35,4,0.4)]"
-              : "rounded-none bg-transparent border border-transparent"
+            "border",
+            // Background: solid on all inner pages, or whenever scrolled
+            !isTransparent
+              ? "bg-[#005528] backdrop-blur-xl border-white/[0.1] shadow-[0_8px_40px_rgba(0,35,4,0.4)]"
+              : scrolled
+                ? "rounded-[16px] bg-[#005528]/95 backdrop-blur-xl border-white/[0.1] shadow-[0_8px_40px_rgba(0,35,4,0.4)]"
+                : "bg-transparent border-transparent",
+            // Shape: pill only when scrolled
+            scrolled ? "rounded-[16px]" : "rounded-none",
           )}
         >
 
@@ -391,7 +397,7 @@ function Navbar() {
           <Link
             href="/shop"
             onClick={() => setDrawerOpen(false)}
-            className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[var(--color-primary)] px-6 py-3.5 font-heading text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-colors duration-150 hover:bg-[var(--color-primary-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#002304]"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-6 py-3.5 font-heading text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#002304]"
           >
             Shop Now
           </Link>

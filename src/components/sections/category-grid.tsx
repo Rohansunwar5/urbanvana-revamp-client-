@@ -72,7 +72,7 @@ function CategorySection() {
     <section
       ref={sectionRef}
       aria-label="Shop by category"
-      className="illuminated-section bg-white"
+      className="illuminated-section bg-[var(--color-bg)]"
     >
       {/* ── Header (contained) ── */}
       <Container className="pb-10 pt-20 md:pb-14 md:pt-28">

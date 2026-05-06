@@ -9,7 +9,7 @@ const buttonVariants = cva(
   // Base — touch-friendly 48px height, brand font, fast transition
   [
     "relative inline-flex items-center justify-center gap-2",
-    "min-h-[48px] px-6 py-3 rounded-[8px]",
+    "min-h-[48px] px-6 py-3 rounded-full",
     "font-body text-base font-semibold whitespace-nowrap",
     "cursor-pointer select-none",
     "transition-[background-color,box-shadow,transform,opacity]",
@@ -17,7 +17,7 @@ const buttonVariants = cva(
     "focus-visible:outline-none focus-visible:ring-2",
     "focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2",
     "disabled:pointer-events-none disabled:opacity-50",
-    "active:scale-[0.98]",
+    "active:scale-[0.95]",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
   ],
   {
@@ -56,7 +56,7 @@ const buttonVariants = cva(
       },
       size: {
         default: "min-h-[48px] px-6 py-3 text-base",
-        sm:      "min-h-[40px] px-4 py-2 text-sm rounded-[8px]",
+        sm:      "min-h-[40px] px-4 py-2 text-sm rounded-full",
         lg:      "min-h-[56px] px-8 py-4 text-lg",
         icon:    "min-h-[48px] min-w-[48px] px-0 py-0",
         full:    "min-h-[48px] w-full px-6 py-3 text-base",

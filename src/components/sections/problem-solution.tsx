@@ -147,7 +147,7 @@ function ProblemSolution() {
           <div className="mt-8 flex justify-center">
             <Link
               href="/shop/towers"
-              className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--color-ink)] px-8 py-4 font-heading text-xs font-bold uppercase tracking-widest text-white transition-colors duration-200 hover:bg-[var(--color-primary-dark)]"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--color-ink)] px-8 py-4 font-heading text-xs font-bold uppercase tracking-widest text-white transition-all duration-200 active:scale-[0.95] hover:bg-[var(--color-primary-dark)]"
             >
               Explore Our Towers
               <ArrowRight size={14} strokeWidth={2.5} aria-hidden="true" />
