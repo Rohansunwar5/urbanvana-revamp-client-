@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed</title>
+  <style>
+    body { font-family: 'Poppins', Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { background-color: #111; padding: 24px 32px; text-align: center; }
+    .header h1 { color: #fff; margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 1px; }
+    .body { padding: 32px; color: #333; font-size: 15px; line-height: 1.7; }
+    .order-id { font-size: 18px; font-weight: 600; color: #111; margin-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th { text-align: left; padding: 10px 12px; background: #f9f9f9; font-size: 13px; color: #666; border-bottom: 1px solid #eee; }
+    td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+    .total-row td { font-weight: 600; font-size: 15px; border-bottom: none; padding-top: 16px; }
+    .footer { background: #f9f9f9; padding: 20px 32px; text-align: center; font-size: 13px; color: #999; border-top: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Order Confirmed ✓</h1>
+    </div>
+    <div class="body">
+      <p>Thank you for your order! We've received your payment and are preparing your items.</p>
+      <div class="order-id">Order #<%= orderId %></div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th style="text-align:right">Qty</th>
+            <th style="text-align:right">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% items.forEach(function(item) { %>
+          <tr>
+            <td><%= item.productName %> <span style="color:#888;font-size:12px">(<%= (item.attributeLabels||[]).join(', ') %>)</span></td>
+            <td style="text-align:right"><%= item.qty %></td>
+            <td style="text-align:right">₹<%= (item.priceAtPurchase * item.qty).toLocaleString('en-IN') %></td>
+          </tr>
+          <% }) %>
+          <tr class="total-row">
+            <td colspan="2">Total</td>
+            <td style="text-align:right">₹<%= total.toLocaleString('en-IN') %></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>You'll receive a shipping update once your order is dispatched. If you have any questions, reply to this email or contact our support team.</p>
+      <p style="margin-top:24px">Warm regards,<br/><strong>The Urbanvana Team</strong></p>
+    </div>
+    <div class="footer">
+      © 2025 Urbanvana. All Rights Reserved.
+    </div>
+  </div>
+</body>
+</html>

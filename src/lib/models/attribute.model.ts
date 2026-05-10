@@ -19,7 +19,6 @@ const attributeSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-attributeSchema.index({ slug: 1 });
 
 export interface IAttributeValue {
   _id: mongoose.Types.ObjectId;

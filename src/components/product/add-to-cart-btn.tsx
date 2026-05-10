@@ -2,39 +2,25 @@
 
 import * as React from "react"
 import { ShoppingCart, Loader2, Check } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/lib/cart-context"
 
 interface AddToCartBtnProps {
-  productId: string
+  variantId: string
+  qty?: number
   disabled?: boolean
   className?: string
-  onAdd?: (productId: string) => Promise<void>
 }
 
 type BtnState = "idle" | "loading" | "success"
 
-/* ── AddToCartBtn ────────────────────────────────────────────────────────
-   brandtheme rules:
-   - idle: primary green, ShoppingCart icon
-   - loading: spinner, disabled, "Adding…" sr text
-   - success: pale-green bg + primary text + Check icon, 1.8s then resets
-   - active:scale-[0.95] press feedback consistent with Button
-   - min-height 48px touch target
-   - never blocks interaction longer than necessary
-───────────────────────────────────────────────────────────────────────── */
-
 const SUCCESS_DURATION = 1800
 
-function AddToCartBtn({
-  productId,
-  disabled,
-  className,
-  onAdd,
-}: AddToCartBtnProps) {
+function AddToCartBtn({ variantId, qty = 1, disabled, className }: AddToCartBtnProps) {
   const [state, setState] = React.useState<BtnState>("idle")
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const cart = useCart()
+  const { addItem } = useCart()
 
   React.useEffect(() => {
     return () => {
@@ -43,38 +29,30 @@ function AddToCartBtn({
   }, [])
 
   async function handleClick() {
-    if (state !== "idle" || disabled) return
-
+    if (state !== "idle" || disabled || !variantId) return
     setState("loading")
     try {
-      if (onAdd) {
-        await onAdd(productId)
-      } else {
-        await new Promise((r) => setTimeout(r, 500))
-        cart.addItem(productId)
-      }
+      await addItem(variantId, qty)
       setState("success")
       timerRef.current = setTimeout(() => setState("idle"), SUCCESS_DURATION)
-    } catch {
+    } catch (err) {
       setState("idle")
+      toast.error(err instanceof Error ? err.message : "Could not add to cart")
     }
   }
 
   const isLoading = state === "loading"
   const isSuccess = state === "success"
-  const isDisabled = disabled || isLoading
+  const isDisabled = disabled || isLoading || !variantId
 
   return (
     <button
       type="button"
       onClick={handleClick}
       disabled={isDisabled}
-      aria-label={
-        isLoading ? "Adding to cart" : isSuccess ? "Added to cart" : "Add to cart"
-      }
+      aria-label={isLoading ? "Adding to cart" : isSuccess ? "Added to cart" : "Add to cart"}
       aria-live="polite"
       className={cn(
-        /* base */
         "relative flex w-full items-center justify-center gap-2",
         "min-h-[48px] rounded-full px-5",
         "font-body text-sm font-semibold leading-none",
@@ -82,14 +60,12 @@ function AddToCartBtn({
         "focus-visible:outline-none focus-visible:ring-2",
         "focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2",
         "cursor-pointer select-none",
-        /* idle / loading */
         !isSuccess && [
           "bg-[var(--color-primary)] text-white",
           "hover:bg-[var(--color-primary-dark)]",
           "active:scale-[0.95]",
           isDisabled && "opacity-60 cursor-not-allowed active:scale-100",
         ],
-        /* success */
         isSuccess && [
           "bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]",
           "cursor-default",
@@ -97,34 +73,10 @@ function AddToCartBtn({
         className
       )}
     >
-      {isLoading && (
-        <Loader2
-          size={16}
-          strokeWidth={1.5}
-          aria-hidden="true"
-          className="shrink-0 animate-spin"
-        />
-      )}
-      {isSuccess && (
-        <Check
-          size={16}
-          strokeWidth={2}
-          aria-hidden="true"
-          className="shrink-0"
-        />
-      )}
-      {!isLoading && !isSuccess && (
-        <ShoppingCart
-          size={16}
-          strokeWidth={1.5}
-          aria-hidden="true"
-          className="shrink-0"
-        />
-      )}
-
-      <span>
-        {isLoading ? "Adding…" : isSuccess ? "Added!" : "Add to Cart"}
-      </span>
+      {isLoading && <Loader2 size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0 animate-spin" />}
+      {isSuccess && <Check size={16} strokeWidth={2} aria-hidden="true" className="shrink-0" />}
+      {!isLoading && !isSuccess && <ShoppingCart size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />}
+      <span>{isLoading ? "Adding…" : isSuccess ? "Added!" : "Add to Cart"}</span>
     </button>
   )
 }

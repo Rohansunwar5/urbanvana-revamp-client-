@@ -21,13 +21,13 @@ const productSchema = new mongoose.Schema(
     badge: { type: badgeSchema, default: null },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     totalReviews: { type: Number, default: 0, min: 0 },
+    totalPurchases: { type: Number, default: 0, min: 0 },
     isActive: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
 
-productSchema.index({ slug: 1 });
 productSchema.index({ category: 1, isActive: 1 });
 productSchema.index({ isActive: 1, isFeatured: 1 });
 productSchema.index({ isActive: 1, rating: -1 });
@@ -55,6 +55,7 @@ export interface IProduct extends mongoose.Document {
   badge: IProductBadge | null;
   rating: number;
   totalReviews: number;
+  totalPurchases: number;
   isActive: boolean;
   isFeatured: boolean;
   createdAt: Date;

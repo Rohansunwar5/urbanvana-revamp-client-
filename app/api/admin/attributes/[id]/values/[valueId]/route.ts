@@ -8,7 +8,10 @@ export const PATCH = apiHandler(async (request, context) => {
   await requireAdminAuth(request);
   const { id, valueId } = await context.params;
   const body = updateAttributeValueSchema.parse(await request.json());
-  const result = await attributeService.updateValue(id as string, valueId as string, body);
+  const result = await attributeService.updateValue(id as string, valueId as string, {
+    ...body,
+    meta: body.meta as Record<string, string> | undefined,
+  });
   return ok(result, 'Attribute value updated');
 });
 

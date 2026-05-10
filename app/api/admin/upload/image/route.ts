@@ -11,6 +11,6 @@ export const POST = apiHandler(async (request) => {
   if (!file) throw new BadRequestError('No file uploaded');
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const url = await uploadService.upload(buffer, file.type, 'admin-uploads', file.name);
+  const url = await uploadService.upload(buffer, file.type, 'admin-uploads');
   return ok({ url }, 'Image uploaded');
 });

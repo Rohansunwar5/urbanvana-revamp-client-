@@ -10,7 +10,7 @@ export const PATCH = apiHandler(async (request, context) => {
   const rawBody = await request.json();
   const parsed = flashSaleSchema.parse(rawBody);
   const params = parsed
-    ? { flashSalePrice: parsed.flashSalePrice, flashSaleEndsAt: new Date(parsed.flashSaleEndsAt) }
+    ? { flashSalePrice: parsed.discountedPrice, flashSaleEndsAt: new Date(parsed.endsAt) }
     : null;
   const result = await productVariantService.setFlashSale(id as string, params);
   return ok(result, 'Flash sale updated');

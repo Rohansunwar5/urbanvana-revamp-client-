@@ -14,42 +14,29 @@ import { Container } from "@/components/layout/container"
    IntersectionObserver drives the zone-lit background effect.
 ───────────────────────────────────────────────────────────────────────── */
 
-const CATEGORIES = [
-  {
-    number: "01",
-    name: "Towers",
-    tagline: "Flagship aeroponic growing systems",
-    href: "/shop/towers",
-    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&auto=format&fit=crop&q=80",
-    imageAlt: "Aeroponic tower growing fresh greens indoors",
-  },
-  {
-    number: "02",
-    name: "Bundles",
-    tagline: "Complete starter kits, ready to grow",
-    href: "/shop/bundles",
-    image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=900&auto=format&fit=crop&q=80",
-    imageAlt: "Complete aeroponic starter bundle",
-  },
-  {
-    number: "03",
-    name: "Nutrients",
-    tagline: "Clean, certified plant nutrition",
-    href: "/shop/nutrients",
-    image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=900&auto=format&fit=crop&q=80",
-    imageAlt: "Nutrient solution bottles for hydroponics",
-  },
-  {
-    number: "04",
-    name: "Accessories",
-    tagline: "Pods, pumps & expansion parts",
-    href: "/shop/accessories",
-    image: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=900&auto=format&fit=crop&q=80",
-    imageAlt: "Growing accessories and replacement parts",
-  },
-] as const
+export type CategoryCardData = {
+  slug: string
+  name: string
+  description?: string
+  image?: string
+}
 
-function CategorySection() {
+const FALLBACK_IMAGES = [
+  "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=900&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=900&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=900&auto=format&fit=crop&q=80",
+]
+
+function categoryGridClass(count: number): string {
+  if (count === 1) return "grid-cols-1"
+  if (count === 2) return "grid-cols-2"
+  if (count === 3) return "grid-cols-2 md:grid-cols-3"
+  if (count === 4) return "grid-cols-2 md:grid-cols-4"
+  return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+}
+
+function CategorySection({ categories }: { categories: CategoryCardData[] }) {
   const sectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -81,12 +68,6 @@ function CategorySection() {
             <p className="mb-4 font-heading text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-primary)]">
               Categories
             </p>
-            {/* <h2
-              className="font-heading font-black uppercase leading-[0.9] tracking-tight text-[var(--color-ink)]"
-              style={{ fontSize: "clamp(2.6rem, 5.5vw, 5rem)" }}
-            >
-              Explore<br />the range.
-            </h2> */}
           </div>
           <Link
             href="/shop"
@@ -98,19 +79,19 @@ function CategorySection() {
         </div>
       </Container>
 
-      {/* ── Card grid — full-width, no gap ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4">
-        {CATEGORIES.map((cat, i) => (
+      {/* ── Card grid — full-width, no gap, adapts to count ── */}
+      <div className={`grid ${categoryGridClass(categories.length)}`}>
+        {categories.map((cat, i) => (
           <Link
-            key={cat.number}
-            href={cat.href}
-            aria-label={`Shop ${cat.name} — ${cat.tagline}`}
+            key={cat.slug}
+            href={`/shop?category=${cat.slug}`}
+            aria-label={`Shop ${cat.name}${cat.description ? ` — ${cat.description}` : ""}`}
             className="group relative flex aspect-[3/4] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)]"
           >
             {/* Image — zooms gently on hover */}
             <Image
-              src={cat.image}
-              alt={cat.imageAlt}
+              src={cat.image || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length]}
+              alt={cat.name}
               fill
               sizes="(max-width: 768px) 50vw, 25vw"
               className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.07]"
@@ -122,7 +103,7 @@ function CategorySection() {
 
             {/* Number — top left */}
             <span className="absolute left-5 top-5 z-10 font-body text-[11px] font-medium tabular-nums text-white/45">
-              {cat.number}
+              {String(i + 1).padStart(2, "0")}
             </span>
 
             {/* Bottom text block */}
@@ -137,9 +118,11 @@ function CategorySection() {
 
               {/* Tagline + CTA — animate up from below on hover */}
               <div className="translate-y-4 opacity-0 transition-all duration-[380ms] ease-out group-hover:translate-y-0 group-hover:opacity-100">
-                <p className="mt-2 font-body text-[13px] leading-snug text-white/65">
-                  {cat.tagline}
-                </p>
+                {cat.description && (
+                  <p className="mt-2 font-body text-[13px] leading-snug text-white/65">
+                    {cat.description}
+                  </p>
+                )}
                 <span className="mt-3 inline-flex items-center gap-1.5 font-heading text-[11px] font-bold uppercase tracking-widest text-[var(--color-primary)]">
                   Shop now
                   <ArrowUpRight size={12} strokeWidth={2.5} aria-hidden="true" />

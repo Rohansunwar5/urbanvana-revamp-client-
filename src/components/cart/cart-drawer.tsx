@@ -2,9 +2,9 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { X, Minus, Plus, ShoppingCart, ArrowRight, Trash2 } from "lucide-react"
+import { X, Minus, Plus, ShoppingCart, ArrowRight, Trash2, Tag } from "lucide-react"
 import { useCart, type CartItem } from "@/lib/cart-context"
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
@@ -38,7 +38,7 @@ function CartRow({ item, isLastAdded }: { item: CartItem; isLastAdded: boolean }
       >
         <Image
           src={item.image}
-          alt={item.imageAlt}
+          alt={item.name}
           fill
           sizes="72px"
           className="object-contain p-2"
@@ -55,15 +55,30 @@ function CartRow({ item, isLastAdded }: { item: CartItem; isLastAdded: boolean }
           {item.name}
         </Link>
 
-        <p className="font-heading text-sm font-bold tabular-nums text-[var(--color-primary)]">
-          ₹{formatINR(item.price)}
-        </p>
+        {/* Variant labels */}
+        {item.attributeLabels.length > 0 && (
+          <p className="font-body text-[10px] text-[var(--color-text-muted)]">
+            {item.attributeLabels.join(" · ")}
+          </p>
+        )}
+
+        {/* Price */}
+        <div className="flex items-baseline gap-1.5 tabular-nums">
+          <p className="font-heading text-sm font-bold text-[var(--color-primary)]">
+            ₹{formatINR(item.price)}
+          </p>
+          {item.priceChanged && (
+            <span className="font-body text-[10px] text-[var(--color-error)]">
+              price updated
+            </span>
+          )}
+        </div>
 
         {/* Qty controls + remove */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center overflow-hidden rounded-[6px] border border-[var(--color-border-strong)]">
             <button
-              onClick={() => setQty(item.id, item.qty - 1)}
+              onClick={() => setQty(item.variantId, item.qty - 1)}
               disabled={item.qty <= 1}
               aria-label="Decrease quantity"
               className="flex h-7 w-7 items-center justify-center text-[var(--color-text-muted)] transition-colors duration-100 hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
@@ -77,7 +92,7 @@ function CartRow({ item, isLastAdded }: { item: CartItem; isLastAdded: boolean }
               {item.qty}
             </span>
             <button
-              onClick={() => setQty(item.id, item.qty + 1)}
+              onClick={() => setQty(item.variantId, item.qty + 1)}
               aria-label="Increase quantity"
               className="flex h-7 w-7 items-center justify-center text-[var(--color-text-muted)] transition-colors duration-100 hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary)]"
             >
@@ -86,7 +101,7 @@ function CartRow({ item, isLastAdded }: { item: CartItem; isLastAdded: boolean }
           </div>
 
           <button
-            onClick={() => removeItem(item.id)}
+            onClick={() => removeItem(item.variantId)}
             aria-label={`Remove ${item.name}`}
             className="flex h-7 w-7 items-center justify-center rounded-[6px] text-[var(--color-text-muted)] transition-colors duration-150 hover:bg-red-50 hover:text-[var(--color-error)]"
           >
@@ -127,9 +142,69 @@ function EmptyCart({ onClose }: { onClose: () => void }) {
 
 /* ── Cart drawer ─────────────────────────────────────────────────────── */
 
+function CouponInput() {
+  const { applyCoupon } = useCart()
+  const [code, setCode] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleApply() {
+    const trimmed = code.trim()
+    if (!trimmed) return
+    setError(null)
+    setLoading(true)
+    try {
+      await applyCoupon(trimmed)
+      setCode("")
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Invalid coupon")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="mt-3 flex flex-col gap-1.5">
+      <div className="flex overflow-hidden rounded-[8px] border border-[var(--color-border-strong)] focus-within:border-[var(--color-primary)] transition-colors duration-150">
+        <div className="flex items-center pl-3 text-[var(--color-text-muted)]">
+          <Tag size={11} strokeWidth={2} aria-hidden="true" />
+        </div>
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(null) }}
+          onKeyDown={(e) => { if (e.key === "Enter") handleApply() }}
+          placeholder="COUPON CODE"
+          className="flex-1 bg-transparent px-2 py-2 font-heading text-[11px] font-bold uppercase tracking-widest text-[var(--color-ink)] placeholder:text-[var(--color-text-muted)]/50 outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleApply}
+          disabled={loading || !code.trim()}
+          className="shrink-0 border-l border-[var(--color-border-strong)] bg-[var(--color-primary)] px-3 font-heading text-[10px] font-bold uppercase tracking-widest text-white transition-colors duration-150 hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? "…" : "Apply"}
+        </button>
+      </div>
+      {error && (
+        <p className="font-body text-[10px] text-[var(--color-error)]">{error}</p>
+      )}
+    </div>
+  )
+}
+
 export function CartDrawer() {
-  const { items, isOpen, lastAddedId, totalItems, subtotal, closeCart } = useCart()
+  const { items, isOpen, lastAddedVariantId, totalItems, subtotal, total, coupon, removeCoupon, syncing, closeCart } = useCart()
   const closeRef = useRef<HTMLButtonElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  /* track mobile breakpoint for slide direction */
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   /* lock body scroll while open */
   useEffect(() => {
@@ -154,6 +229,7 @@ export function CartDrawer() {
   const hasItems = items.length > 0
   const FREE_SHIPPING_THRESHOLD = 999
   const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
+  const hasCoupon = coupon !== null
 
   return (
     <AnimatePresence>
@@ -171,18 +247,23 @@ export function CartDrawer() {
             aria-hidden="true"
           />
 
-          {/* Drawer panel */}
+          {/* Drawer panel — bottom sheet on mobile, right panel on sm+ */}
           <motion.aside
             key="drawer"
             role="dialog"
             aria-modal="true"
             aria-label="Shopping cart"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            initial={isMobile ? { y: "100%" } : { x: "100%" }}
+            animate={isMobile ? { y: 0 } : { x: 0 }}
+            exit={isMobile ? { y: "100%" } : { x: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 260, mass: 0.8 }}
-            className="fixed right-0 top-0 z-[80] flex h-full w-full flex-col bg-white shadow-[var(--shadow-xl)] sm:w-[420px]"
+            className="fixed bottom-0 right-0 z-[80] flex h-[67vh] w-full flex-col rounded-t-[20px] bg-white shadow-[var(--shadow-xl)] sm:top-0 sm:h-full sm:w-[420px] sm:rounded-none"
           >
+            {/* Drag handle — mobile only */}
+            <div className="flex justify-center pt-3 sm:hidden" aria-hidden="true">
+              <div className="h-1 w-10 rounded-full bg-[var(--color-border-strong)]" />
+            </div>
+
             {/* ── Header ── */}
             <div className="flex items-center justify-between border-b border-[var(--color-border-strong)] px-5 py-4">
               <div className="flex items-center gap-2.5">
@@ -194,6 +275,9 @@ export function CartDrawer() {
                   <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--color-primary)] px-1.5 font-heading text-[10px] font-bold text-white tabular-nums">
                     {totalItems}
                   </span>
+                )}
+                {syncing && (
+                  <span className="font-body text-[10px] text-[var(--color-text-muted)]">saving…</span>
                 )}
               </div>
               <button
@@ -242,8 +326,8 @@ export function CartDrawer() {
                 <motion.ul className="flex flex-col gap-2" role="list">
                   <AnimatePresence initial={false}>
                     {items.map((item) => (
-                      <li key={item.id} role="listitem">
-                        <CartRow item={item} isLastAdded={item.id === lastAddedId} />
+                      <li key={item.variantId} role="listitem">
+                        <CartRow item={item} isLastAdded={item.variantId === lastAddedVariantId} />
                       </li>
                     ))}
                   </AnimatePresence>
@@ -256,21 +340,68 @@ export function CartDrawer() {
             {/* ── Footer ── */}
             {hasItems && (
               <div className="border-t border-[var(--color-border-strong)] bg-white px-5 py-5">
-                {/* Subtotal */}
-                <div className="mb-4 flex items-center justify-between">
+                {/* Subtotal row */}
+                <div className="flex items-center justify-between">
                   <span className="font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
                     Subtotal
                   </span>
-                  <span className="font-heading text-xl font-bold tabular-nums text-[var(--color-ink)]">
+                  <span className="font-heading text-base font-bold tabular-nums text-[var(--color-ink)]">
                     ₹{formatINR(subtotal)}
                   </span>
                 </div>
+
+                {/* Coupon row */}
+                {hasCoupon && coupon && (
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Tag size={11} strokeWidth={2} className="text-[var(--color-primary)]" aria-hidden="true" />
+                      <span className="font-heading text-[10px] font-bold uppercase tracking-widest text-[var(--color-primary)]">
+                        {coupon.code}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-sm font-bold tabular-nums text-[var(--color-primary)]">
+                        −₹{formatINR(coupon.discountAmount)}
+                      </span>
+                      <button
+                        onClick={() => removeCoupon()}
+                        aria-label="Remove coupon"
+                        className="font-body text-[10px] text-[var(--color-text-muted)] underline hover:text-[var(--color-error)]"
+                      >
+                        remove
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Total row */}
+                {hasCoupon && (
+                  <div className="mt-2 flex items-center justify-between border-t border-[var(--color-border-strong)] pt-2">
+                    <span className="font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-ink)]">
+                      Total
+                    </span>
+                    <span className="font-heading text-xl font-bold tabular-nums text-[var(--color-primary)]">
+                      ₹{formatINR(total)}
+                    </span>
+                  </div>
+                )}
+
+                {!hasCoupon && (
+                  <div className="mt-1">
+                    <span className="font-heading text-xl font-bold tabular-nums text-[var(--color-ink)]">
+                      ₹{formatINR(subtotal)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Coupon input — only when no coupon applied */}
+                {!hasCoupon && <CouponInput />}
 
                 {/* Checkout CTA */}
                 <Link
                   href="/checkout"
                   onClick={closeCart}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-6 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-6 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
                 >
                   Proceed to Checkout
                   <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />

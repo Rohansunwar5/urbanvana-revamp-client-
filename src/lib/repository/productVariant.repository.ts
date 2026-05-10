@@ -78,7 +78,7 @@ export class ProductVariantRepository {
 
   async getMinPriceByProductIds(
     productIds: string[],
-  ): Promise<{ _id: string; minPrice: number; originalMinPrice: number }[]> {
+  ): Promise<{ _id: string; minPrice: number; originalMinPrice: number; defaultVariantId: string; defaultVariantAttributes: Array<{ valueLabel: string }> }[]> {
     const now = new Date();
     return this._model.aggregate([
       {
@@ -96,9 +96,20 @@ export class ProductVariantRepository {
               '$price',
             ],
           },
+          // in-stock variants sort first so $first picks them for defaultVariantId
+          inStock: { $cond: [{ $gt: ['$stock', 0] }, 1, 0] },
         },
       },
-      { $group: { _id: '$product', minPrice: { $min: '$effectivePrice' }, originalMinPrice: { $min: '$price' } } },
+      { $sort: { inStock: -1, effectivePrice: 1 } },
+      {
+        $group: {
+          _id: '$product',
+          minPrice: { $min: '$effectivePrice' },
+          originalMinPrice: { $first: '$originalPrice' },
+          defaultVariantId: { $first: '$_id' },
+          defaultVariantAttributes: { $first: '$attributes' },
+        },
+      },
     ]);
   }
 

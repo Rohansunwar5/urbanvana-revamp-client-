@@ -27,3 +27,17 @@ export const verifyWebhookSignature = (rawBody: string, signature: string): bool
     .digest('hex');
   return expected === signature;
 };
+
+/** Verifies the HMAC for client-side payment confirmation (uses RAZORPAY_KEY_SECRET) */
+export const verifyPaymentSignature = (
+  razorpayOrderId: string,
+  razorpayPaymentId: string,
+  signature: string,
+): boolean => {
+  const body = `${razorpayOrderId}|${razorpayPaymentId}`;
+  const expected = crypto
+    .createHmac('sha256', config.RAZORPAY_KEY_SECRET)
+    .update(body)
+    .digest('hex');
+  return expected === signature;
+};

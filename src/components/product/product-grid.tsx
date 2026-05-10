@@ -82,7 +82,7 @@ function ProductGrid({
         <div
           role="status"
           aria-label="Loading products"
-          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3"
         >
           {Array.from({ length: skeletonCount }, (_, i) => (
             <ProductCardSkeleton key={i} />
@@ -107,7 +107,7 @@ function ProductGrid({
       {!loading && products.length > 0 && (
         <div
           ref={gridRef}
-          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3"
         >
           {products.map((product, i) => (
             <div

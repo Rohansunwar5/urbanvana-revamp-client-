@@ -1,6 +1,7 @@
 import ejs from 'ejs';
 import fs from 'fs';
 import path from 'path';
+import { SendEmailCommand } from '@aws-sdk/client-ses';
 import { BadRequestError } from '@/lib/errors/bad-request.error';
 import { ses } from '@/lib/utils/ses.util';
 
@@ -28,8 +29,7 @@ class MailService {
       Source: 'WorkPlay Studio Pvt Ltd. <no-reply@workplay.digital>',
     };
 
-    const response = await ses.sendEmail(params).promise();
-    if (!response) throw new BadRequestError('Failed to send email');
+    await ses.send(new SendEmailCommand(params));
     return {};
   }
 

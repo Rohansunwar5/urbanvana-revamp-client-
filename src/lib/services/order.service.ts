@@ -6,8 +6,8 @@ import { ProductVariantRepository } from '@/lib/repository/productVariant.reposi
 import { CartRepository } from '@/lib/repository/cart.repository';
 import { CouponUsageRepository } from '@/lib/repository/couponUsage.repository';
 import { guestCartCacheManager } from '@/lib/services/cache/entities';
-import { verifyWebhookSignature } from '@/lib/utils/razorpay.util';
-import { OrderStatus, ITrackingInfo } from '@/lib/models/order.model';
+import { verifyWebhookSignature, verifyPaymentSignature } from '@/lib/utils/razorpay.util';
+import { OrderStatus, ITrackingInfo, IOrderItem } from '@/lib/models/order.model';
 import couponService from '@/lib/services/coupon.service';
 import mailService from '@/lib/services/mail.service';
 
@@ -56,7 +56,7 @@ class OrderService {
     if (!order) return { received: true };
 
     await Promise.all(
-      order.items.map(item =>
+      order.items.map((item: IOrderItem) =>
         this._variantRepository.adjustStock(item.variantId.toString(), -item.qty),
       ),
     );
@@ -127,7 +127,7 @@ class OrderService {
 
     if (order.status === 'confirmed') {
       await Promise.all(
-        order.items.map(item =>
+        order.items.map((item: IOrderItem) =>
           this._variantRepository.adjustStock(item.variantId.toString(), item.qty),
         ),
       );
@@ -185,7 +185,7 @@ class OrderService {
       refunded: [],
     };
 
-    if (!validTransitions[order.status].includes(status))
+    if (!validTransitions[order.status as OrderStatus].includes(status))
       throw new BadRequestError(`Cannot transition from '${order.status}' to '${status}'`);
 
     const updated = await this._orderRepository.updateStatus(orderId, status, note, trackingInfo);
@@ -193,13 +193,74 @@ class OrderService {
 
     if (status === 'cancelled' && order.status === 'confirmed') {
       await Promise.all(
-        order.items.map(item =>
+        order.items.map((item: IOrderItem) =>
           this._variantRepository.adjustStock(item.variantId.toString(), item.qty),
         ),
       );
     }
 
     return updated;
+  }
+
+  async verifyAndConfirmPayment(
+    orderId: string,
+    userId: string | undefined,
+    razorpayOrderId: string,
+    razorpayPaymentId: string,
+    razorpaySignature: string,
+  ) {
+    if (!verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature)) {
+      throw new UnauthorizedError('Invalid payment signature');
+    }
+
+    const order = await this._orderRepository.findByOrderId(orderId);
+    if (!order) throw new NotFoundError('Order not found');
+
+    if (order.userId && order.userId.toString() !== userId) {
+      throw new UnauthorizedError('Access denied');
+    }
+
+    const confirmed = await this._orderRepository.confirmPayment({
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+      method: 'online',
+    });
+
+    if (!confirmed) return { orderId };
+
+    await Promise.all(
+      confirmed.items.map((item: IOrderItem) =>
+        this._variantRepository.adjustStock(item.variantId.toString(), -item.qty),
+      ),
+    );
+
+    if (confirmed.couponId && confirmed.userId) {
+      await Promise.all([
+        this._couponUsageRepository.create({
+          couponId: confirmed.couponId.toString(),
+          userId: confirmed.userId.toString(),
+          orderId: confirmed._id.toString(),
+        }),
+        couponService.incrementUsage(confirmed.couponId.toString()),
+      ]);
+    } else if (confirmed.couponId) {
+      await couponService.incrementUsage(confirmed.couponId.toString());
+    }
+
+    if (confirmed.userId) {
+      await this._cartRepository.clearItems(confirmed.userId.toString());
+    } else if (confirmed.sessionId) {
+      await guestCartCacheManager.remove({ sessionId: confirmed.sessionId });
+    }
+
+    mailService.sendOrderConfirmationEmail(confirmed.customerEmail, {
+      orderId: confirmed.orderId,
+      total: confirmed.billing.total,
+      items: confirmed.items,
+    }).catch(() => null);
+
+    return { orderId };
   }
 
   async retryPayment(orderId: string, userId: string) {

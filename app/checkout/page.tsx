@@ -2,11 +2,12 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronRight, Check, CreditCard, Smartphone, Banknote, Loader2, ShoppingCart } from "lucide-react"
+import { ChevronRight, Check, Banknote, Loader2, ShoppingCart, Tag, X, CreditCard } from "lucide-react"
 import { Container } from "@/components/layout/container"
 import { useCart } from "@/lib/cart-context"
+import { useAuth } from "@/lib/auth-context"
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 
@@ -18,8 +19,9 @@ function Field({
   label,
   id,
   required,
+  error,
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; id: string; required?: boolean }) {
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; id: string; required?: boolean; error?: string }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="font-heading text-[11px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
@@ -28,16 +30,24 @@ function Field({
       <input
         id={id}
         required={required}
-        className="h-12 w-full rounded-[8px] border border-[var(--color-border-strong)] bg-white px-4 font-body text-sm text-[var(--color-ink)] outline-none transition-colors duration-150 placeholder:text-[var(--color-text-muted)]/50 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+        className={[
+          "h-12 w-full rounded-[8px] border bg-white px-4 font-body text-sm text-[var(--color-ink)] outline-none transition-colors duration-150",
+          "placeholder:text-[var(--color-text-muted)]/50",
+          "focus:ring-2 focus:ring-[var(--color-primary)]/20",
+          error
+            ? "border-[var(--color-error)] focus:border-[var(--color-error)]"
+            : "border-[var(--color-border-strong)] focus:border-[var(--color-primary)]",
+        ].join(" ")}
         {...props}
       />
+      {error && <p className="font-body text-xs text-[var(--color-error)]">{error}</p>}
     </div>
   )
 }
 
 /* ── Payment method option ───────────────────────────────────────────── */
 
-type PaymentMethod = "upi" | "card" | "cod"
+type PaymentMethod = "online" | "cod"
 
 function PaymentOption({
   id,
@@ -87,12 +97,92 @@ function PaymentOption({
   )
 }
 
+/* ── Coupon input (not a <form> — lives inside the main form) ──────── */
+
+function CouponInput() {
+  const { coupon, applyCoupon, removeCoupon, syncing } = useCart()
+  const [code, setCode] = useState("")
+  const [error, setError] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  async function handleApply() {
+    if (!code.trim() || syncing) return
+    setError("")
+    try {
+      await applyCoupon(code.trim().toUpperCase())
+      setCode("")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid coupon code")
+    }
+  }
+
+  if (coupon) {
+    return (
+      <div className="flex items-center justify-between rounded-[8px] border border-[var(--color-primary)] bg-[var(--color-primary-light)]/30 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Tag size={14} strokeWidth={2} className="text-[var(--color-primary)]" aria-hidden="true" />
+          <span className="font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">
+            {coupon.code} — ₹{formatINR(coupon.discountAmount)} off
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={removeCoupon}
+          aria-label="Remove coupon"
+          className="text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-error)]"
+        >
+          <X size={14} strokeWidth={2} aria-hidden="true" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex gap-2">
+      <div className="flex-1">
+        <input
+          ref={inputRef}
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleApply() } }}
+          placeholder="Coupon code"
+          className="h-11 w-full rounded-[8px] border border-[var(--color-border-strong)] bg-white px-4 font-body text-sm text-[var(--color-ink)] uppercase outline-none transition-colors focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 placeholder:uppercase placeholder:tracking-widest"
+        />
+        {error && <p className="mt-1 font-body text-xs text-[var(--color-error)]">{error}</p>}
+      </div>
+      <button
+        type="button"
+        onClick={handleApply}
+        disabled={!code.trim() || syncing}
+        className="h-11 rounded-[8px] border border-[var(--color-border-strong)] bg-white px-4 font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-ink)] transition-all hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-50"
+      >
+        Apply
+      </button>
+    </div>
+  )
+}
+
 /* ── Order summary sidebar ───────────────────────────────────────────── */
 
 function OrderSummary() {
-  const { items, subtotal } = useCart()
-  const shipping = subtotal >= 999 ? 0 : 99
-  const total = subtotal + shipping
+  const { items, subtotal, total, coupon, applyCoupon, removeCoupon, syncing } = useCart()
+  const hasCoupon = coupon !== null
+  const shipping = (hasCoupon ? total : subtotal) >= 999 ? 0 : 99
+  const grandTotal = (hasCoupon ? total : subtotal) + shipping
+
+  const [code, setCode] = useState("")
+  const [error, setError] = useState("")
+
+  async function handleApply() {
+    if (!code.trim() || syncing) return
+    setError("")
+    try {
+      await applyCoupon(code.trim().toUpperCase())
+      setCode("")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid coupon code")
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -103,11 +193,11 @@ function OrderSummary() {
       {/* Item list */}
       <div className="flex flex-col gap-3">
         {items.map((item) => (
-          <div key={item.id} className="flex items-center gap-3">
+          <div key={item.variantId} className="flex items-center gap-3">
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] border border-[var(--color-border-strong)] bg-white">
               <Image
                 src={item.image}
-                alt={item.imageAlt}
+                alt={item.name}
                 fill
                 sizes="56px"
                 className="object-contain p-1.5"
@@ -121,6 +211,11 @@ function OrderSummary() {
               <p className="font-heading text-[10px] font-bold uppercase leading-snug tracking-widest text-[var(--color-ink)] line-clamp-2">
                 {item.name}
               </p>
+              {item.attributeLabels.length > 0 && (
+                <p className="mt-0.5 font-body text-[10px] text-[var(--color-text-muted)]">
+                  {item.attributeLabels.join(" · ")}
+                </p>
+              )}
             </div>
             <span className="font-heading text-sm font-bold tabular-nums text-[var(--color-ink)]">
               ₹{formatINR(item.price * item.qty)}
@@ -131,12 +226,64 @@ function OrderSummary() {
 
       <div className="h-px bg-[var(--color-border-strong)]" />
 
+      {/* Coupon section in order summary */}
+      {hasCoupon && coupon ? (
+        <div className="flex items-center justify-between rounded-[8px] border border-[var(--color-primary)] bg-[var(--color-primary-light)]/30 px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <Tag size={12} strokeWidth={2} className="text-[var(--color-primary)]" aria-hidden="true" />
+            <span className="font-heading text-[10px] font-bold uppercase tracking-widest text-[var(--color-primary)]">
+              {coupon.code}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={removeCoupon}
+            aria-label="Remove coupon"
+            className="text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-error)]"
+          >
+            <X size={13} strokeWidth={2} aria-hidden="true" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          <div className="flex gap-2">
+            <input
+              value={code}
+              onChange={(e) => { setCode(e.target.value.toUpperCase()); setError("") }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleApply() } }}
+              placeholder="Coupon code"
+              className="h-9 flex-1 rounded-[6px] border border-[var(--color-border-strong)] bg-white px-3 font-body text-xs text-[var(--color-ink)] uppercase outline-none transition-colors focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20"
+            />
+            <button
+              type="button"
+              onClick={handleApply}
+              disabled={!code.trim() || syncing}
+              className="h-9 rounded-[6px] bg-[var(--color-ink)] px-3 font-heading text-[10px] font-bold uppercase tracking-widest text-white transition-all hover:bg-[var(--color-primary)] disabled:opacity-50"
+            >
+              Apply
+            </button>
+          </div>
+          {error && <p className="font-body text-[10px] text-[var(--color-error)]">{error}</p>}
+        </div>
+      )}
+
+      <div className="h-px bg-[var(--color-border-strong)]" />
+
       {/* Totals */}
       <div className="flex flex-col gap-2">
         <div className="flex justify-between font-body text-sm">
           <span className="text-[var(--color-text-muted)]">Subtotal</span>
           <span className="tabular-nums text-[var(--color-ink)]">₹{formatINR(subtotal)}</span>
         </div>
+        {hasCoupon && coupon && (
+          <div className="flex justify-between font-body text-sm">
+            <span className="flex items-center gap-1 text-[var(--color-primary)]">
+              <Tag size={11} strokeWidth={2} aria-hidden="true" />
+              {coupon.code}
+            </span>
+            <span className="tabular-nums text-[var(--color-primary)]">−₹{formatINR(coupon.discountAmount)}</span>
+          </div>
+        )}
         <div className="flex justify-between font-body text-sm">
           <span className="text-[var(--color-text-muted)]">Shipping</span>
           <span className={shipping === 0 ? "font-medium text-[var(--color-primary)]" : "tabular-nums text-[var(--color-ink)]"}>
@@ -152,30 +299,52 @@ function OrderSummary() {
           Total
         </span>
         <span className="font-heading text-xl font-bold tabular-nums text-[var(--color-primary)]">
-          ₹{formatINR(total)}
+          ₹{formatINR(grandTotal)}
         </span>
       </div>
-
-      {shipping > 0 && (
-        <p className="font-body text-xs text-[var(--color-text-muted)]">
-          Add ₹{formatINR(999 - subtotal)} more to qualify for free delivery.
-        </p>
-      )}
     </div>
   )
 }
 
+/* ── Razorpay script loader ──────────────────────────────────────────── */
+
+function useRazorpay() {
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    if ((window as unknown as Record<string, unknown>).Razorpay) {
+      setLoaded(true)
+      return
+    }
+    const script = document.createElement("script")
+    script.src = "https://checkout.razorpay.com/v1/checkout.js"
+    script.onload = () => setLoaded(true)
+    document.body.appendChild(script)
+    return () => { document.body.removeChild(script) }
+  }, [])
+
+  return loaded
+}
+
 /* ── Page ────────────────────────────────────────────────────────────── */
+
+type CheckoutResult =
+  | { paymentMethod: "cod"; orderId: string }
+  | { paymentMethod: "online"; orderId: string; razorpayOrderId: string; razorpayKeyId: string; amountInPaise: number }
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, clearCart } = useCart()
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("upi")
+  const { user } = useAuth()
+  const { items, total, subtotal, coupon, clearCart } = useCart()
+  const razorpayLoaded = useRazorpay()
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("online")
   const [submitting, setSubmitting] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [apiError, setApiError] = useState("")
+
+  const isGuest = !user
 
   /* Redirect if cart is empty */
-  if (items.length === 0 && !success) {
+  if (items.length === 0) {
     return (
       <section className="flex min-h-[60vh] flex-col items-center justify-center gap-6 py-20 text-center">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-primary-light)]">
@@ -199,40 +368,117 @@ export default function CheckoutPage() {
     )
   }
 
-  /* Success state */
-  if (success) {
-    return (
-      <section className="flex min-h-[60vh] flex-col items-center justify-center gap-6 py-20 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-primary)]">
-          <Check size={36} strokeWidth={2.5} className="text-white" aria-hidden="true" />
-        </div>
-        <div>
-          <p className="font-heading text-2xl font-black uppercase tracking-tight text-[var(--color-ink)]">
-            Order placed!
-          </p>
-          <p className="mt-2 font-body text-base text-[var(--color-text-muted)]">
-            Thanks for your order. You&apos;ll receive a confirmation email shortly.
-          </p>
-        </div>
-        <Link
-          href="/shop"
-          className="inline-flex items-center gap-2 rounded-full bg-[var(--color-ink)] px-8 py-4 font-heading text-sm font-bold uppercase tracking-widest text-white transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-dark)]"
-        >
-          Continue Shopping
-        </Link>
-      </section>
-    )
-  }
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setApiError("")
     setSubmitting(true)
-    /* Simulate order placement */
-    await new Promise((r) => setTimeout(r, 1800))
-    clearCart()
-    setSuccess(true)
-    setSubmitting(false)
+
+    const form = e.currentTarget
+    const fd = new FormData(form)
+
+    const body = {
+      paymentMethod: paymentMethod === "cod" ? "cod" : "online",
+      customerEmail: (fd.get("email") as string) ?? user?.email ?? "",
+      shippingAddress: {
+        fullName: `${fd.get("firstName") ?? ""} ${fd.get("lastName") ?? ""}`.trim(),
+        phone: (fd.get("phone") as string) ?? "",
+        line1: (fd.get("address") as string) ?? "",
+        line2: (fd.get("address2") as string) ?? "",
+        city: (fd.get("city") as string) ?? "",
+        state: (fd.get("state") as string) ?? "",
+        pincode: (fd.get("pincode") as string) ?? "",
+        country: "India",
+      },
+      ...(isGuest && {
+        guestInfo: {
+          name: `${fd.get("firstName") ?? ""} ${fd.get("lastName") ?? ""}`.trim(),
+          email: (fd.get("email") as string) ?? "",
+          phone: (fd.get("phone") as string) ?? "",
+        },
+      }),
+    }
+
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
+      })
+
+      const json = await res.json() as { data: CheckoutResult; message?: string }
+
+      if (!res.ok) {
+        setApiError((json as { message?: string }).message ?? "Order placement failed. Please try again.")
+        setSubmitting(false)
+        return
+      }
+
+      const result = json.data
+
+      if (result.paymentMethod === "cod") {
+        await clearCart()
+        router.push(`/orders/${result.orderId}`)
+        return
+      }
+
+      if (!razorpayLoaded) {
+        setApiError("Payment gateway failed to load. Please refresh and try again.")
+        setSubmitting(false)
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rzp = new (window as any).Razorpay({
+        key: result.razorpayKeyId,
+        amount: result.amountInPaise,
+        currency: "INR",
+        name: "Urbanvana",
+        description: `Order ${result.orderId}`,
+        order_id: result.razorpayOrderId,
+        prefill: {
+          name: body.shippingAddress.fullName,
+          email: body.customerEmail,
+          contact: body.shippingAddress.phone,
+        },
+        theme: { color: "#059669" },
+        handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          try {
+            const verifyRes = await fetch(`/api/orders/${result.orderId}/verify-payment`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              }),
+            })
+            if (!verifyRes.ok) throw new Error("Verification failed")
+            await clearCart()
+            router.push(`/orders/${result.orderId}`)
+          } catch {
+            setApiError("Payment received but verification failed. Your order is saved — please contact support.")
+            setSubmitting(false)
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setApiError("Payment was cancelled. Please try again.")
+            setSubmitting(false)
+          },
+        },
+      })
+
+      rzp.open()
+    } catch {
+      setApiError("Something went wrong. Please try again.")
+      setSubmitting(false)
+    }
   }
+
+  const cartTotal = coupon ? total : subtotal
+  const shipping = cartTotal >= 999 ? 0 : 99
 
   return (
     <section className="bg-[var(--color-bg-subtle)] py-10 md:py-16">
@@ -259,11 +505,24 @@ export default function CheckoutPage() {
                 <Field label="First Name" id="first-name" name="firstName" placeholder="Priya" required autoComplete="given-name" />
                 <Field label="Last Name"  id="last-name"  name="lastName"  placeholder="Mehta" required autoComplete="family-name" />
                 <div className="sm:col-span-2">
-                  <Field label="Email" id="email" name="email" type="email" placeholder="priya@example.com" required autoComplete="email" />
+                  <Field
+                    label="Email"
+                    id="email"
+                    name="email"
+                    type="email"
+                    defaultValue={user?.email ?? ""}
+                    placeholder="priya@example.com"
+                    required
+                    autoComplete="email"
+                    readOnly={!!user}
+                  />
                 </div>
-                <Field label="Phone" id="phone" name="phone" type="tel" placeholder="+91 98765 43210" required autoComplete="tel" />
+                <Field label="Phone" id="phone" name="phone" type="tel" placeholder="9876543210" required autoComplete="tel" />
                 <div className="sm:col-span-2">
-                  <Field label="Address" id="address" name="address" placeholder="123 MG Road, Apartment 4B" required autoComplete="street-address" />
+                  <Field label="Address Line 1" id="address" name="address" placeholder="123 MG Road, Apartment 4B" required autoComplete="street-address" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Field label="Address Line 2" id="address2" name="address2" placeholder="Landmark (optional)" autoComplete="address-line2" />
                 </div>
                 <Field label="City"    id="city"    name="city"    placeholder="Bangalore" required autoComplete="address-level2" />
                 <Field label="Pincode" id="pincode" name="pincode" type="text" inputMode="numeric" pattern="[0-9]{6}" placeholder="560001" required autoComplete="postal-code" />
@@ -273,6 +532,14 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Coupon — not a <form>, uses type="button" to avoid nesting */}
+            <div className="rounded-[16px] border border-[var(--color-border-strong)] bg-white p-6 md:p-8">
+              <h2 className="mb-4 font-heading text-base font-bold uppercase tracking-widest text-[var(--color-ink)]">
+                Coupon Code
+              </h2>
+              <CouponInput />
+            </div>
+
             {/* Payment method */}
             <div className="rounded-[16px] border border-[var(--color-border-strong)] bg-white p-6 md:p-8">
               <h2 className="mb-6 font-heading text-base font-bold uppercase tracking-widest text-[var(--color-ink)]">
@@ -280,20 +547,12 @@ export default function CheckoutPage() {
               </h2>
               <div className="flex flex-col gap-3" role="radiogroup" aria-label="Select payment method">
                 <PaymentOption
-                  id="upi"
-                  label="UPI"
-                  sublabel="Pay via GPay, PhonePe, Paytm & more"
-                  icon={Smartphone}
-                  selected={paymentMethod === "upi"}
-                  onSelect={() => setPaymentMethod("upi")}
-                />
-                <PaymentOption
-                  id="card"
-                  label="Debit / Credit Card"
-                  sublabel="Visa, Mastercard, RuPay accepted"
+                  id="online"
+                  label="Pay Online"
+                  sublabel="UPI, Cards, Netbanking & more via Razorpay"
                   icon={CreditCard}
-                  selected={paymentMethod === "card"}
-                  onSelect={() => setPaymentMethod("card")}
+                  selected={paymentMethod === "online"}
+                  onSelect={() => setPaymentMethod("online")}
                 />
                 <PaymentOption
                   id="cod"
@@ -304,28 +563,14 @@ export default function CheckoutPage() {
                   onSelect={() => setPaymentMethod("cod")}
                 />
               </div>
-
-              {/* UPI ID field */}
-              {paymentMethod === "upi" && (
-                <div className="mt-4">
-                  <Field label="UPI ID" id="upi-id" name="upiId" placeholder="yourname@upi" autoComplete="off" />
-                </div>
-              )}
-
-              {/* Card fields */}
-              {paymentMethod === "card" && (
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <Field label="Card Number" id="card-number" name="cardNumber" inputMode="numeric" placeholder="1234 5678 9012 3456" autoComplete="cc-number" />
-                  </div>
-                  <Field label="Expiry" id="expiry" name="expiry" placeholder="MM / YY" autoComplete="cc-exp" />
-                  <Field label="CVV"    id="cvv"    name="cvv"    inputMode="numeric" placeholder="•••" autoComplete="cc-csc" />
-                  <div className="sm:col-span-2">
-                    <Field label="Name on Card" id="card-name" name="cardName" placeholder="PRIYA MEHTA" autoComplete="cc-name" />
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* API error */}
+            {apiError && (
+              <div className="rounded-[10px] border border-[var(--color-error)]/30 bg-red-50 px-4 py-3">
+                <p className="font-body text-sm text-[var(--color-error)]">{apiError}</p>
+              </div>
+            )}
 
             {/* Place order */}
             <button
@@ -337,11 +582,11 @@ export default function CheckoutPage() {
               {submitting ? (
                 <>
                   <Loader2 size={18} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />
-                  Placing Order…
+                  {paymentMethod === "cod" ? "Placing Order…" : "Opening Payment…"}
                 </>
               ) : (
                 <>
-                  Place Order
+                  {paymentMethod === "cod" ? "Place Order" : `Pay ₹${formatINR(cartTotal + shipping)}`}
                   <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
                 </>
               )}

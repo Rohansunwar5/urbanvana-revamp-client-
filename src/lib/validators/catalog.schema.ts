@@ -14,13 +14,13 @@ export const updateAttributeSchema = z.object({
 export const addAttributeValueSchema = z.object({
   label: z.string().min(1, 'Label is required'),
   slug: z.string().optional(),
-  meta: z.record(z.string()).optional(),
+  meta: z.record(z.string(), z.string()).optional(),
 });
 
 export const updateAttributeValueSchema = z.object({
   label: z.string().min(1).optional(),
   slug: z.string().optional(),
-  meta: z.record(z.string()).optional(),
+  meta: z.record(z.string(), z.string()).optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -62,6 +62,9 @@ export const createProductSchema = z.object({
     variant: z.enum(['primary', 'accent']),
   }).nullable().optional(),
   isFeatured: z.boolean().optional(),
+  rating: z.number().min(0).max(5).optional(),
+  totalReviews: z.number().int().min(0).optional(),
+  totalPurchases: z.number().int().min(0).optional(),
 });
 
 export const updateProductSchema = z.object({
@@ -77,18 +80,21 @@ export const updateProductSchema = z.object({
   }).nullable().optional(),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
+  rating: z.number().min(0).max(5).optional(),
+  totalReviews: z.number().int().min(0).optional(),
+  totalPurchases: z.number().int().min(0).optional(),
 });
 
 export const createVariantSchema = z.object({
   sku: z.string().optional(),
   price: z.number().positive('price must be positive'),
-  originalPrice: z.number().positive('originalPrice must be positive'),
+  originalPrice: z.number().positive('originalPrice must be positive').optional(),
   stock: z.number().int().min(0, 'stock must be >= 0'),
   images: z.array(z.string()).optional(),
   attributes: z.array(z.object({
     attributeId: z.string().min(1, 'Invalid attributeId'),
     valueId: z.string().min(1, 'Invalid valueId'),
-  })).min(1, 'attributes must have at least one entry'),
+  })).optional().default([]),
 });
 
 export const bulkCreateVariantsSchema = z.object({
@@ -111,13 +117,13 @@ export const updateVariantSchema = z.object({
 });
 
 export const adjustStockSchema = z.object({
-  delta: z.number({ required_error: 'delta is required' }),
+  delta: z.number().refine(v => v !== undefined, 'delta is required'),
 });
 
 export const flashSaleSchema = z.union([
   z.object({
-    flashSalePrice: z.number().min(0),
-    flashSaleEndsAt: z.string().datetime(),
+    discountedPrice: z.number().min(0),
+    endsAt: z.string().datetime(),
   }),
   z.null(),
 ]);

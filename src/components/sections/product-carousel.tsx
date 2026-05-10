@@ -4,76 +4,19 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
+import { getImageUrl } from "@/lib/utils/image"
+import type { CatalogProduct } from "@/lib/types/catalog"
 
-/* ── ProductCarousel — Barcoop-style center-featured carousel ─────────────
-   5 slots visible: center (large), ±1 (medium), ±2 (small/faded).
-   Auto-advances every 3.5 s. Pauses on hover. Wraps infinitely.
-   All positioning via combined transform so scale + translate compose cleanly.
-───────────────────────────────────────────────────────────────────────── */
+/* ── Slot positioning ────────────────────────────────────────────────── */
 
-const PRODUCTS = [
-  {
-    id:      "tower-pro-30",
-    name:    "Tower Pro 30",
-    tagline: "30 plants. Zero soil. Total control.",
-    href:    "/shop/aeroponic-tower-pro-30",
-    image:   "/mock1.png",
-  },
-  {
-    id:      "herb-starter-kit",
-    name:    "Herb Starter Kit",
-    tagline: "12 pre-germinated varieties, ready to drop in.",
-    href:    "/shop/herb-seed-starter-kit",
-    image:   "/mock2.png",
-  },
-  {
-    id:      "complete-grow-pack",
-    name:    "Complete Grow Pack",
-    tagline: "3 months of clean, pH-balanced nutrition.",
-    href:    "/shop/complete-nutrient-pack-3-month",
-    image:   "/mock3.png",
-  },
-  {
-    id:      "tower-lite-20",
-    name:    "Tower Lite 20",
-    tagline: "Compact form, full aeroponic power.",
-    href:    "/shop/aeroponic-tower-lite-20",
-    image:   "/mock4.png",
-  },
-  {
-    id:      "tower-pro-30-b",
-    name:    "Tower Pro 30",
-    tagline: "30 plants. Zero soil. Total control.",
-    href:    "/shop/aeroponic-tower-pro-30",
-    image:   "/mock1.png",
-  },
-  {
-    id:      "herb-starter-kit-b",
-    name:    "Herb Starter Kit",
-    tagline: "12 pre-germinated varieties, ready to drop in.",
-    href:    "/shop/herb-seed-starter-kit",
-    image:   "/mock2.png",
-  },
-  {
-    id:      "complete-grow-pack-b",
-    name:    "Complete Grow Pack",
-    tagline: "3 months of clean, pH-balanced nutrition.",
-    href:    "/shop/complete-nutrient-pack-3-month",
-    image:   "/mock3.png",
-  },
-]
-
-/* Each item is 260px wide, placed at left: 50% of the stage.
-   translateX(-50%) centers it.  Additional px offset moves it to its slot.
-   Scale is applied after translation so items shrink in-place.            */
 function slotStyle(offset: number): React.CSSProperties {
   const abs = Math.abs(offset)
   const sign = Math.sign(offset) || 1
 
   const configs = [
-    { tx:    0, scale: 1.00, opacity: 1.00, z: 5 }, // center — largest, full opacity
-    { tx:  305, scale: 0.78, opacity: 1.00, z: 4 }, // ±1 — no fade
-    { tx:  530, scale: 0.60, opacity: 1.00, z: 3 }, // ±2 — no fade
+    { tx:    0, scale: 1.00, opacity: 1.00, z: 5 },
+    { tx:  305, scale: 0.78, opacity: 1.00, z: 4 },
+    { tx:  530, scale: 0.60, opacity: 1.00, z: 3 },
   ]
 
   const cfg = configs[abs] ?? { tx: 720, scale: 0.50, opacity: 0, z: 1 }
@@ -86,36 +29,37 @@ function slotStyle(offset: number): React.CSSProperties {
   }
 }
 
-function ProductCarousel() {
-  const count                         = PRODUCTS.length
+/* ── ProductCarousel ─────────────────────────────────────────────────── */
+
+function ProductCarousel({ products }: { products: CatalogProduct[] }) {
+  const count                         = products.length
   const [active, setActive]           = useState(0)
   const [paused, setPaused]           = useState(false)
-  const [prev,   setPrev]             = useState<number | null>(null)
   const intervalRef                   = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const advance = useCallback(
     (dir: 1 | -1) => {
-      setActive((p) => {
-        setPrev(p)
-        return (p + dir + count) % count
-      })
+      setActive((p) => (p + dir + count) % count)
     },
     [count],
   )
 
-  /* Auto-play */
   useEffect(() => {
-    if (paused) return
+    if (paused || count === 0) return
     intervalRef.current = setInterval(() => advance(1), 3500)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [paused, advance])
+  }, [paused, advance, count])
+
+  if (count === 0) return null
+
+  const current = products[active]
 
   return (
     <section
       aria-label="Featured products"
       className="overflow-hidden bg-white py-24 md:py-32"
     >
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="mb-16 px-4 text-center">
         <p className="mb-3 font-heading text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-primary)]">
           The Collection
@@ -128,24 +72,22 @@ function ProductCarousel() {
         </h2>
       </div>
 
-      {/* ── Stage ── */}
+      {/* Stage */}
       <div
         className="relative mx-auto select-none"
         style={{ height: "460px", maxWidth: "1120px" }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        {PRODUCTS.map((product, i) => {
-          /* Shortest-path circular offset */
+        {products.map((product, i) => {
           let off = i - active
           if (off >  Math.floor(count / 2)) off -= count
           if (off < -Math.floor(count / 2)) off += count
-
           const isCenter = off === 0
 
           return (
             <div
-              key={product.id}
+              key={product._id}
               aria-hidden={!isCenter}
               style={{
                 position: "absolute",
@@ -159,7 +101,7 @@ function ProductCarousel() {
             >
               <div className="relative h-full w-full">
                 <Image
-                  src={product.image}
+                  src={getImageUrl(product.images[0])}
                   alt={isCenter ? product.name : ""}
                   fill
                   sizes="260px"
@@ -174,7 +116,7 @@ function ProductCarousel() {
         })}
       </div>
 
-      {/* ── Active product info ── */}
+      {/* Active product info */}
       <div
         className="mt-6 px-4 text-center"
         style={{ minHeight: "100px" }}
@@ -182,13 +124,13 @@ function ProductCarousel() {
         aria-atomic="true"
       >
         <p className="font-heading text-lg font-bold uppercase tracking-widest text-[var(--color-ink)]">
-          {PRODUCTS[active].name}
+          {current.name}
         </p>
         <p className="mt-1 font-body text-sm text-[var(--color-text-muted)]">
-          {PRODUCTS[active].tagline}
+          {current.description}
         </p>
         <Link
-          href={PRODUCTS[active].href}
+          href={`/shop/${current.slug}`}
           className="mt-5 inline-flex items-center gap-2 rounded-full border-2 border-[var(--color-ink)] px-7 py-3 font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-ink)] transition-all duration-200 active:scale-[0.95] hover:bg-[var(--color-ink)] hover:text-white"
         >
           Shop Now
@@ -196,7 +138,7 @@ function ProductCarousel() {
         </Link>
       </div>
 
-      {/* ── Controls ── */}
+      {/* Controls */}
       <div className="mt-8 flex items-center justify-center gap-5">
         <button
           onClick={() => advance(-1)}
@@ -206,19 +148,14 @@ function ProductCarousel() {
           <ArrowLeft size={16} strokeWidth={2} />
         </button>
 
-        {/* Pill dots */}
-        <div
-          className="flex items-center gap-[6px]"
-          role="tablist"
-          aria-label="Select product"
-        >
-          {PRODUCTS.map((_, i) => (
+        <div className="flex items-center gap-[6px]" role="tablist" aria-label="Select product">
+          {products.map((_, i) => (
             <button
               key={i}
               role="tab"
               aria-selected={i === active}
               aria-label={`Product ${i + 1}`}
-              onClick={() => { setPrev(active); setActive(i) }}
+              onClick={() => setActive(i)}
               className={[
                 "rounded-full transition-all duration-300",
                 i === active

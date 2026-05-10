@@ -46,7 +46,7 @@ class CartService {
     private readonly _cartRepository: CartRepository,
     private readonly _variantRepository: ProductVariantRepository,
     private readonly _productRepository: ProductRepository,
-  ) {}
+  ) { }
 
   async getCart(actor: ICartActor): Promise<ICartResponse> {
     if (actor.userId) {

@@ -7,7 +7,11 @@ import { productDetailCacheManager, productListCacheManager } from '@/lib/servic
 import attributeService from './attribute.service';
 import crypto from 'crypto';
 
-const RESERVED_SLUGS = ['featured', 'bestsellers'];
+const RESERVED_SLUGS = ['featured', 'bestsellers']
+
+function toVariantLabels(attrs?: Array<{ valueLabel: string }>): string[] {
+  return (attrs ?? []).map(a => a.valueLabel).filter(Boolean)
+};
 
 const slugify = (text: string) =>
   text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -33,6 +37,9 @@ class ProductService {
     images?: string[];
     badge?: { label: string; variant: 'primary' | 'accent' } | null;
     isFeatured?: boolean;
+    rating?: number;
+    totalReviews?: number;
+    totalPurchases?: number;
   }) {
     const slug = params.slug ? slugify(params.slug) : slugify(params.name);
 
@@ -55,6 +62,9 @@ class ProductService {
       images: params.images,
       badge: params.badge,
       isFeatured: params.isFeatured,
+      rating: params.rating,
+      totalReviews: params.totalReviews,
+      totalPurchases: params.totalPurchases,
     };
 
     const product = await this._productRepository.create(createParams);
@@ -74,6 +84,9 @@ class ProductService {
       badge?: { label: string; variant: 'primary' | 'accent' } | null;
       isFeatured?: boolean;
       isActive?: boolean;
+      rating?: number;
+      totalReviews?: number;
+      totalPurchases?: number;
     },
   ) {
     const product = await this._productRepository.findById(id);
@@ -158,17 +171,20 @@ class ProductService {
     const priceById = new Map(priceMaps.map(p => [p._id.toString(), p]));
 
     let products = docs.map(p => ({
-      _id: p._id,
+      _id: p._id.toString(),
       name: p.name,
       slug: p.slug,
-      images: p.images,
-      badge: p.badge,
+      description: p.description ?? '',
+      images: Array.isArray(p.images) ? [...p.images] : [],
+      badge: p.badge ? { label: p.badge.label, variant: p.badge.variant } : null,
       rating: p.rating,
       totalReviews: p.totalReviews,
-      category: p.category,
+      category: p.category?.toString?.() ?? String(p.category),
       isFeatured: p.isFeatured,
       minPrice: priceById.get(p._id.toString())?.minPrice ?? 0,
       originalMinPrice: priceById.get(p._id.toString())?.originalMinPrice ?? 0,
+      defaultVariantId: priceById.get(p._id.toString())?.defaultVariantId?.toString(),
+      defaultVariantLabels: toVariantLabels(priceById.get(p._id.toString())?.defaultVariantAttributes),
     }));
 
     if (priceSortDirection !== null) {
@@ -202,6 +218,41 @@ class ProductService {
     return result;
   }
 
+  async adminListProducts(query: { page?: number; limit?: number; search?: string }) {
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(query.limit) || 12));
+    const skip = (page - 1) * limit;
+
+    const ProductModel = this._productRepository['_model'];
+    const filter: Record<string, unknown> = {};
+    if (query.search) filter.name = { $regex: query.search, $options: 'i' };
+
+    const [docs, total] = await Promise.all([
+      ProductModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      ProductModel.countDocuments(filter),
+    ]);
+
+    const ids = docs.map((p: { _id: { toString(): string } }) => p._id.toString());
+    const priceMaps = await this._variantRepository.getMinPriceByProductIds(ids);
+    const priceById = new Map(priceMaps.map((p) => [p._id.toString(), p]));
+
+    const products = docs.map((p: Record<string, unknown> & { _id: { toString(): string } }) => ({
+      _id: p._id,
+      name: p.name,
+      slug: p.slug,
+      images: p.images,
+      badge: p.badge,
+      rating: p.rating,
+      totalReviews: p.totalReviews,
+      category: p.category,
+      isFeatured: p.isFeatured,
+      isActive: p.isActive,
+      minPrice: priceById.get(p._id.toString())?.minPrice ?? 0,
+    }));
+
+    return { products, pagination: { total, page, limit, pages: Math.ceil(total / limit) } };
+  }
+
   async getProductBySlugAdmin(slug: string) {
     const product = await this._productRepository.findBySlugAdmin(slug);
     if (!product) throw new NotFoundError('Product not found');
@@ -226,15 +277,18 @@ class ProductService {
     const priceById = new Map(priceMaps.map(p => [p._id.toString(), p]));
 
     const products = docs.map(p => ({
-      _id: p._id,
+      _id: p._id.toString(),
       name: p.name,
       slug: p.slug,
-      images: p.images,
-      badge: p.badge,
+      description: p.description ?? '',
+      images: Array.isArray(p.images) ? [...p.images] : [],
+      badge: p.badge ? { label: p.badge.label, variant: p.badge.variant } : null,
       rating: p.rating,
       totalReviews: p.totalReviews,
       minPrice: priceById.get(p._id.toString())?.minPrice ?? 0,
       originalMinPrice: priceById.get(p._id.toString())?.originalMinPrice ?? 0,
+      defaultVariantId: priceById.get(p._id.toString())?.defaultVariantId?.toString(),
+      defaultVariantLabels: toVariantLabels(priceById.get(p._id.toString())?.defaultVariantAttributes),
     }));
 
     await productListCacheManager.set({ queryHash: 'featured' }, products);
@@ -257,15 +311,18 @@ class ProductService {
     const priceById = new Map(priceMaps.map(p => [p._id.toString(), p]));
 
     const products = docs.map(p => ({
-      _id: p._id,
+      _id: p._id.toString(),
       name: p.name,
       slug: p.slug,
-      images: p.images,
-      badge: p.badge,
+      description: p.description ?? '',
+      images: Array.isArray(p.images) ? [...p.images] : [],
+      badge: p.badge ? { label: p.badge.label, variant: p.badge.variant } : null,
       rating: p.rating,
       totalReviews: p.totalReviews,
       minPrice: priceById.get(p._id.toString())?.minPrice ?? 0,
       originalMinPrice: priceById.get(p._id.toString())?.originalMinPrice ?? 0,
+      defaultVariantId: priceById.get(p._id.toString())?.defaultVariantId?.toString(),
+      defaultVariantLabels: toVariantLabels(priceById.get(p._id.toString())?.defaultVariantAttributes),
     }));
 
     await productListCacheManager.set({ queryHash: 'bestsellers' }, products);
@@ -285,15 +342,18 @@ class ProductService {
     const priceById = new Map(priceMaps.map(p => [p._id.toString(), p]));
 
     const products = docs.map(p => ({
-      _id: p._id,
+      _id: p._id.toString(),
       name: p.name,
       slug: p.slug,
-      images: p.images,
-      badge: p.badge,
+      description: p.description ?? '',
+      images: Array.isArray(p.images) ? [...p.images] : [],
+      badge: p.badge ? { label: p.badge.label, variant: p.badge.variant } : null,
       rating: p.rating,
       totalReviews: p.totalReviews,
       minPrice: priceById.get(p._id.toString())?.minPrice ?? 0,
       originalMinPrice: priceById.get(p._id.toString())?.originalMinPrice ?? 0,
+      defaultVariantId: priceById.get(p._id.toString())?.defaultVariantId?.toString(),
+      defaultVariantLabels: toVariantLabels(priceById.get(p._id.toString())?.defaultVariantAttributes),
     }));
 
     return { products, pagination: { total, page: safePage, limit: safeLimit, pages: Math.ceil(total / safeLimit) } };
@@ -314,15 +374,18 @@ class ProductService {
     const priceById = new Map(priceMaps.map(p => [p._id.toString(), p]));
 
     return related.map(p => ({
-      _id: p._id,
+      _id: p._id.toString(),
       name: p.name,
       slug: p.slug,
-      images: p.images,
-      badge: p.badge,
+      description: p.description ?? '',
+      images: Array.isArray(p.images) ? [...p.images] : [],
+      badge: p.badge ? { label: p.badge.label, variant: p.badge.variant } : null,
       rating: p.rating,
       totalReviews: p.totalReviews,
       minPrice: priceById.get(p._id.toString())?.minPrice ?? 0,
       originalMinPrice: priceById.get(p._id.toString())?.originalMinPrice ?? 0,
+      defaultVariantId: priceById.get(p._id.toString())?.defaultVariantId?.toString(),
+      defaultVariantLabels: toVariantLabels(priceById.get(p._id.toString())?.defaultVariantAttributes),
     }));
   }
 

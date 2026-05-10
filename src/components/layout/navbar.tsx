@@ -1,31 +1,137 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Menu, X, ShoppingCart, Search, ChevronDown, Leaf } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import {
+  Menu, X, ShoppingCart, Search, ChevronDown,
+  LogOut, Package, User,
+} from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { cn } from "@/lib/utils"
 import { Container } from "@/components/layout/container"
 import { useCart } from "@/lib/cart-context"
+import { useAuth } from "@/lib/auth-context"
+import { AuthModal } from "@/components/auth/auth-modal"
 
 /* ── Nav definitions ─────────────────────────────────────────────────── */
 
-const NAV_LINKS = [
-  {
-    label: "Shop",
-    href: "/shop",
-    children: [
-      { label: "Aeroponic Towers", href: "/shop",        desc: "Our flagship growing systems" },
-      { label: "Starter Bundles",  href: "/shop",        desc: "Everything to get started" },
-      { label: "Nutrients",        href: "/shop",        desc: "Clean, certified formulas" },
-      { label: "Accessories",      href: "/shop",        desc: "Pods, lights & more" },
-    ],
-  },
+type NavCategory = { label: string; href: string; desc: string }
+
+const STATIC_NAV_LINKS = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Learn",        href: "/learn" },
   { label: "About",        href: "/about" },
 ]
+
+function useNavCategories() {
+  const [categories, setCategories] = React.useState<NavCategory[]>([])
+
+  React.useEffect(() => {
+    fetch("/api/catalog/categories")
+      .then((r) => r.ok ? r.json() : null)
+      .then((json) => {
+        if (!json?.data) return
+        const cats = (json.data as Array<{ slug: string; name: string; description?: string }>)
+          .map((c) => ({ label: c.name, href: `/shop?category=${c.slug}`, desc: c.description ?? "" }))
+        setCategories(cats)
+      })
+      .catch(() => {})
+  }, [])
+
+  return categories
+}
+
+/* ── User Avatar ─────────────────────────────────────────────────────── */
+
+function UserMenu() {
+  const { user, logout } = useAuth()
+  const [open, setOpen] = React.useState(false)
+  const ref = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    if (open) document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [open])
+
+  const initials = user
+    ? `${user.firstName[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase()
+    : "?"
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Account menu"
+        aria-expanded={open}
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 font-heading text-[11px] font-bold text-white transition-colors duration-150 hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      >
+        {initials}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] }}
+            className="absolute right-0 top-full mt-2 w-[200px] origin-top-right overflow-hidden rounded-[12px] border border-white/10 bg-[#003d1e] shadow-[0_16px_40px_rgba(0,0,0,0.3)] backdrop-blur-xl"
+          >
+            {/* User info */}
+            <div className="border-b border-white/[0.08] px-4 py-3">
+              <p className="font-heading text-[12px] font-bold text-white truncate">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className="font-body text-[11px] text-white/50 truncate mt-0.5">
+                {user?.email}
+              </p>
+              {!user?.verified && (
+                <span className="mt-1.5 inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 font-body text-[10px] text-amber-400">
+                  Email unverified
+                </span>
+              )}
+            </div>
+
+            {/* Menu items */}
+            <div className="py-1.5">
+              <Link
+                href="/account"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2.5 font-heading text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 transition-colors duration-150 hover:bg-white/8 hover:text-white"
+              >
+                <User size={13} strokeWidth={1.5} aria-hidden="true" />
+                My Account
+              </Link>
+              <Link
+                href="/account/orders"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2.5 font-heading text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 transition-colors duration-150 hover:bg-white/8 hover:text-white"
+              >
+                <Package size={13} strokeWidth={1.5} aria-hidden="true" />
+                My Orders
+              </Link>
+            </div>
+
+            <div className="border-t border-white/[0.08] py-1.5">
+              <button
+                onClick={async () => { setOpen(false); await logout() }}
+                className="flex w-full items-center gap-2.5 px-4 py-2.5 font-heading text-[11px] font-bold uppercase tracking-[0.12em] text-white/50 transition-colors duration-150 hover:bg-white/8 hover:text-white/80"
+              >
+                <LogOut size={13} strokeWidth={1.5} aria-hidden="true" />
+                Sign Out
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 /* ── Navbar ──────────────────────────────────────────────────────────── */
 
@@ -34,8 +140,19 @@ function Navbar() {
   const [scrolled, setScrolled]     = React.useState(false)
   const [drawerOpen, setDrawerOpen] = React.useState(false)
   const [shopOpen, setShopOpen]     = React.useState(false)
+  const [authOpen, setAuthOpen]     = React.useState(false)
   const dropdownRef                 = React.useRef<HTMLLIElement>(null)
   const { totalItems, openCart }    = useCart()
+  const { user, loading, logout }   = useAuth()
+  const router                      = useRouter()
+  const navCategories               = useNavCategories()
+
+  /* Open auth modal from anywhere via custom event (e.g. wishlist button) */
+  React.useEffect(() => {
+    const handler = () => setAuthOpen(true)
+    window.addEventListener('urbanvana:open-auth', handler)
+    return () => window.removeEventListener('urbanvana:open-auth', handler)
+  }, [])
 
   /* Transparent only on homepage while at the very top */
   const isHome        = pathname === "/"
@@ -79,18 +196,16 @@ function Navbar() {
           scrolled ? "px-4 pt-3 md:px-8 md:pt-4" : "px-0 pt-0"
         )}
       >
-        {/* Floating pill: shape is scroll-driven; background is transparent only on home+unscrolled */}
+        {/* Floating pill */}
         <div
           className={cn(
             "transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
             "border",
-            // Background: solid on all inner pages, or whenever scrolled
             !isTransparent
               ? "bg-[#005528] backdrop-blur-xl border-white/[0.1] shadow-[0_8px_40px_rgba(0,35,4,0.4)]"
               : scrolled
                 ? "rounded-[16px] bg-[#005528]/95 backdrop-blur-xl border-white/[0.1] shadow-[0_8px_40px_rgba(0,35,4,0.4)]"
                 : "bg-transparent border-transparent",
-            // Shape: pill only when scrolled
             scrolled ? "rounded-[16px]" : "rounded-none",
           )}
         >
@@ -107,123 +222,127 @@ function Navbar() {
             <Link
               href="/"
               aria-label="Urbanvana — go to homepage"
-              className="group flex items-center gap-2.5 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="flex items-center rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
-              {/* Icon mark */}
-              <span className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[var(--color-primary)] transition-colors duration-300 group-hover:bg-white">
-                <Leaf
-                  size={14}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                  className="text-white transition-colors duration-300 group-hover:text-[var(--color-primary)]"
-                />
-              </span>
-
-              {/* Wordmark */}
-              <span className="font-heading text-[15px] font-bold uppercase tracking-[0.18em] text-white">
-                Urbanvana
-              </span>
+              <Image
+                src="/logo.png"
+                alt="Urbanvana"
+                width={140}
+                height={52}
+                className="h-10 w-auto"
+                style={{ mixBlendMode: "screen" }}
+                priority
+              />
             </Link>
 
             {/* ── Desktop nav ──────────────────────────────────────── */}
             <ul role="list" className="hidden items-center gap-0 md:flex">
-              {NAV_LINKS.map((link) =>
-                link.children ? (
-                  <li key={link.href} ref={dropdownRef} className="relative">
-                    <button
-                      onClick={() => setShopOpen((o) => !o)}
-                      aria-expanded={shopOpen}
-                      aria-haspopup="true"
-                      className="group relative flex items-center gap-1 px-4 py-2 focus-visible:outline-none"
-                    >
-                      <span className="font-heading text-[11px] font-bold uppercase tracking-[0.18em] text-white/70 transition-colors duration-200 group-hover:text-white">
-                        {link.label}
-                      </span>
-                      <ChevronDown
-                        size={11}
-                        strokeWidth={2}
-                        aria-hidden="true"
-                        className={cn(
-                          "text-white/50 transition-all duration-200 group-hover:text-white",
-                          shopOpen && "rotate-180"
-                        )}
-                      />
-                      {/* Hover underline */}
-                      <span className="absolute inset-x-4 bottom-0 h-px origin-left scale-x-0 bg-white/40 transition-transform duration-200 group-hover:scale-x-100" aria-hidden="true" />
-                    </button>
+              {/* Shop dropdown */}
+              <li ref={dropdownRef} className="relative">
+                <button
+                  onClick={() => setShopOpen((o) => !o)}
+                  aria-expanded={shopOpen}
+                  aria-haspopup="true"
+                  className="group relative flex items-center gap-1 px-4 py-2 focus-visible:outline-none"
+                >
+                  <span className="font-heading text-[11px] font-bold uppercase tracking-[0.18em] text-white/70 transition-colors duration-200 group-hover:text-white">
+                    Shop
+                  </span>
+                  <ChevronDown
+                    size={11}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    className={cn(
+                      "text-white/50 transition-all duration-200 group-hover:text-white",
+                      shopOpen && "rotate-180"
+                    )}
+                  />
+                  <span className="absolute inset-x-4 bottom-0 h-px origin-left scale-x-0 bg-white/40 transition-transform duration-200 group-hover:scale-x-100" aria-hidden="true" />
+                </button>
 
-                    {/* Mega dropdown */}
-                    <AnimatePresence>
-                      {shopOpen && (
-                        <motion.div
-                          role="menu"
-                          initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                          transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] }}
-                          className="absolute left-0 top-full mt-3 min-w-[240px] origin-top-left"
-                        >
-                          <div className="overflow-hidden rounded-[14px] border border-white/10 bg-[#003d1e] shadow-[0_24px_48px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-                            {link.children.map((child, i) => (
-                              <Link
-                                key={child.href + child.label}
-                                href={child.href}
-                                role="menuitem"
-                                onClick={() => setShopOpen(false)}
-                                className={cn(
-                                  "group/item flex items-start gap-3 px-5 py-3.5 transition-colors duration-150",
-                                  "hover:bg-white/8 focus-visible:outline-none focus-visible:bg-white/8",
-                                  i < link.children.length - 1 && "border-b border-white/[0.06]"
-                                )}
-                              >
-                                <span className="mt-0.5 flex h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-primary)] opacity-0 transition-opacity duration-150 group-hover/item:opacity-100" aria-hidden="true" />
-                                <div>
-                                  <p className="font-heading text-[11px] font-bold uppercase tracking-[0.15em] text-white/90 transition-colors duration-150 group-hover/item:text-white">
-                                    {child.label}
-                                  </p>
-                                  <p className="mt-0.5 font-body text-[11px] text-white/40">
-                                    {child.desc}
-                                  </p>
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </li>
-                ) : (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="group relative flex px-4 py-2 focus-visible:outline-none"
+                <AnimatePresence>
+                  {shopOpen && (
+                    <motion.div
+                      role="menu"
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                      transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] }}
+                      className="absolute left-0 top-full mt-3 min-w-[240px] origin-top-left"
                     >
-                      <span
-                        className={cn(
-                          "font-heading text-[11px] font-bold uppercase tracking-[0.18em] transition-colors duration-200",
-                          pathname === link.href ? "text-white" : "text-white/70 group-hover:text-white"
-                        )}
-                      >
-                        {link.label}
-                      </span>
-                      {/* Hover underline */}
-                      <span
-                        className={cn(
-                          "absolute inset-x-4 bottom-0 h-px bg-white/40 transition-transform duration-200 origin-left",
-                          pathname === link.href ? "scale-x-100 bg-[var(--color-primary)]" : "scale-x-0 group-hover:scale-x-100"
-                        )}
-                        aria-hidden="true"
-                      />
-                    </Link>
-                  </li>
-                )
-              )}
+                      <div className="overflow-hidden rounded-[14px] border border-white/10 bg-[#003d1e] shadow-[0_24px_48px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+                        {/* "All Products" always shown */}
+                        <Link
+                          href="/shop"
+                          role="menuitem"
+                          onClick={() => setShopOpen(false)}
+                          className={cn(
+                            "group/item flex items-center gap-3 px-5 py-3 transition-colors duration-150",
+                            "hover:bg-white/8 focus-visible:outline-none focus-visible:bg-white/8",
+                            navCategories.length > 0 && "border-b border-white/[0.06]"
+                          )}
+                        >
+                          <span className="flex h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-primary)] opacity-0 transition-opacity duration-150 group-hover/item:opacity-100" aria-hidden="true" />
+                          <p className="font-heading text-[11px] font-bold uppercase tracking-[0.15em] text-white/90 transition-colors duration-150 group-hover/item:text-white">
+                            All Products
+                          </p>
+                        </Link>
+                        {navCategories.map((cat, i) => (
+                          <Link
+                            key={cat.href}
+                            href={cat.href}
+                            role="menuitem"
+                            onClick={() => setShopOpen(false)}
+                            className={cn(
+                              "group/item flex items-center gap-3 px-5 py-3 transition-colors duration-150",
+                              "hover:bg-white/8 focus-visible:outline-none focus-visible:bg-white/8",
+                              i < navCategories.length - 1 && "border-b border-white/[0.06]"
+                            )}
+                          >
+                            <span className="flex h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-primary)] opacity-0 transition-opacity duration-150 group-hover/item:opacity-100" aria-hidden="true" />
+                            <p className="font-heading text-[11px] font-bold uppercase tracking-[0.15em] text-white/90 transition-colors duration-150 group-hover/item:text-white">
+                              {cat.label}
+                            </p>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </li>
+
+              {/* Other nav links */}
+              {STATIC_NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="group relative flex px-4 py-2 focus-visible:outline-none"
+                  >
+                    <span
+                      className={cn(
+                        "font-heading text-[11px] font-bold uppercase tracking-[0.18em] transition-colors duration-200",
+                        pathname === link.href ? "text-white" : "text-white/70 group-hover:text-white"
+                      )}
+                    >
+                      {link.label}
+                    </span>
+                    <span
+                      className={cn(
+                        "absolute inset-x-4 bottom-0 h-px bg-white/40 transition-transform duration-200 origin-left",
+                        pathname === link.href ? "scale-x-100 bg-[var(--color-primary)]" : "scale-x-0 group-hover:scale-x-100"
+                      )}
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </li>
+              ))}
             </ul>
 
             {/* ── Desktop right actions ─────────────────────────────── */}
             <div className="hidden items-center gap-1 md:flex">
               {/* Search */}
               <button
+                onClick={() => router.push('/search')}
                 aria-label="Search products"
                 className="flex h-10 w-10 items-center justify-center rounded-[8px] text-white/60 transition-colors duration-150 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
               >
@@ -254,7 +373,25 @@ function Navbar() {
                 </AnimatePresence>
               </button>
 
-              {/* CTA pill */}
+              {/* Auth — sign in button or user avatar */}
+              {!loading && (
+                <>
+                  {user ? (
+                    <div className="ml-1">
+                      <UserMenu />
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setAuthOpen(true)}
+                      className="ml-1 flex h-8 items-center rounded-full border border-white/20 bg-white/10 px-4 font-heading text-[10px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                    >
+                      Sign In
+                    </button>
+                  )}
+                </>
+              )}
+
+              {/* Shop Now CTA */}
               <Link
                 href="/shop"
                 className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-5 py-2 font-heading text-[10px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
@@ -303,6 +440,9 @@ function Navbar() {
         </div>{/* end floating pill */}
       </header>
 
+      {/* Auth Modal */}
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+
       {/* Spacer — only on non-home pages to push content below fixed nav */}
       {!isHome && <div className="h-[68px] md:h-[72px]" aria-hidden="true" />}
 
@@ -336,14 +476,16 @@ function Navbar() {
       >
         {/* Drawer header */}
         <div className="flex h-[68px] items-center justify-between border-b border-white/[0.08] px-5">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[var(--color-primary)]">
-              <Leaf size={12} strokeWidth={1.5} aria-hidden="true" className="text-white" />
-            </span>
-            <span className="font-heading text-[13px] font-bold uppercase tracking-[0.18em] text-white">
-              Urbanvana
-            </span>
-          </div>
+          <Link href="/" onClick={() => setDrawerOpen(false)}>
+            <Image
+              src="/logo.png"
+              alt="Urbanvana"
+              width={110}
+              height={40}
+              className="h-8 w-auto"
+              style={{ mixBlendMode: "screen" }}
+            />
+          </Link>
           <button
             onClick={() => setDrawerOpen(false)}
             aria-label="Close menu"
@@ -360,13 +502,21 @@ function Navbar() {
             Shop
           </p>
           <ul role="list" className="mb-4">
-            {NAV_LINKS[0].children!.map((child) => (
-              <li key={child.label}>
+            <li>
+              <Link
+                href="/shop"
+                className="flex items-center justify-between px-5 py-3 font-heading text-[11px] font-bold uppercase tracking-[0.15em] text-white/60 transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:text-white"
+              >
+                All Products
+              </Link>
+            </li>
+            {navCategories.map((cat) => (
+              <li key={cat.href}>
                 <Link
-                  href={child.href}
+                  href={cat.href}
                   className="flex items-center justify-between px-5 py-3 font-heading text-[11px] font-bold uppercase tracking-[0.15em] text-white/60 transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:text-white"
                 >
-                  {child.label}
+                  {cat.label}
                 </Link>
               </li>
             ))}
@@ -376,7 +526,7 @@ function Navbar() {
 
           {/* Other links */}
           <ul role="list" className="mt-4">
-            {NAV_LINKS.slice(1).map((link) => (
+            {STATIC_NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
@@ -390,6 +540,46 @@ function Navbar() {
               </li>
             ))}
           </ul>
+
+          <div className="mx-5 mt-4 h-px bg-white/[0.08]" />
+
+          {/* Mobile auth */}
+          <div className="mt-4 px-5">
+            {user ? (
+              <div className="flex flex-col gap-1">
+                <p className="font-heading text-[9px] font-bold uppercase tracking-[0.25em] text-white/30 mb-1">
+                  Account
+                </p>
+                <Link
+                  href="/account"
+                  onClick={() => setDrawerOpen(false)}
+                  className="flex items-center gap-2 py-3 font-heading text-[11px] font-bold uppercase tracking-[0.15em] text-white/60 hover:text-white"
+                >
+                  <User size={13} strokeWidth={1.5} /> My Account
+                </Link>
+                <Link
+                  href="/account/orders"
+                  onClick={() => setDrawerOpen(false)}
+                  className="flex items-center gap-2 py-3 font-heading text-[11px] font-bold uppercase tracking-[0.15em] text-white/60 hover:text-white"
+                >
+                  <Package size={13} strokeWidth={1.5} /> My Orders
+                </Link>
+                <button
+                  onClick={async () => { setDrawerOpen(false); await logout() }}
+                  className="flex items-center gap-2 py-3 font-heading text-[11px] font-bold uppercase tracking-[0.15em] text-white/40 hover:text-white/80"
+                >
+                  <LogOut size={13} strokeWidth={1.5} /> Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setDrawerOpen(false); setAuthOpen(true) }}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 font-heading text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-all duration-150 hover:bg-white/20"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
         </nav>
 
         {/* Bottom CTA */}

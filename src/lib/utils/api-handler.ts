@@ -22,7 +22,7 @@ export function apiHandler(fn: RouteHandler): RouteHandler {
   return async (request, context) => {
     try {
       await connectDB();
-      await ensureRedisConnected();
+      ensureRedisConnected(); // fire-and-forget — cache ops degrade gracefully when Redis is cold
       return await fn(request, context);
     } catch (err) {
       const path = new URL(request.url).pathname;
@@ -38,7 +38,12 @@ export function apiHandler(fn: RouteHandler): RouteHandler {
       if (err instanceof CustomError) {
         const errors = err.serializeErrors();
         const msg = `route: ${path}, errorMsg: ${errors[0]?.message}, rayId: ${rayId}`;
-        logger.error(msg);
+        // 4xx are expected conditions (auth required, not found, etc.) — don't pollute error logs
+        if (err.statusCode >= 500) {
+          logger.error(msg);
+        } else {
+          logger.warn(msg);
+        }
         return errorResponse(errors, err.statusCode, msg);
       }
 

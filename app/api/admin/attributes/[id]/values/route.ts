@@ -8,6 +8,6 @@ export const POST = apiHandler(async (request, context) => {
   await requireAdminAuth(request);
   const { id } = await context.params;
   const body = addAttributeValueSchema.parse(await request.json());
-  const result = await attributeService.addValue(id as string, body);
+  const result = await attributeService.addValue(id as string, { ...body, slug: body.slug ?? '' });
   return ok(result, 'Attribute value added', 201);
 });

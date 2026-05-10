@@ -11,6 +11,10 @@ export interface ICreateProductParams {
   images?: string[];
   badge?: { label: string; variant: 'primary' | 'accent' } | null;
   isFeatured?: boolean;
+  isActive?: boolean;
+  rating?: number;
+  totalReviews?: number;
+  totalPurchases?: number;
 }
 
 export interface IProductFilter {
@@ -37,15 +41,15 @@ export class ProductRepository {
   }
 
   async findBySlug(slug: string): Promise<IProduct | null> {
-    return this._model.findOne({ slug, isActive: true });
+    return this._model.findOne({ slug, isActive: true }).lean() as Promise<IProduct | null>;
   }
 
   async findBySlugAdmin(slug: string): Promise<IProduct | null> {
-    return this._model.findOne({ slug });
+    return this._model.findOne({ slug }).lean() as Promise<IProduct | null>;
   }
 
   async findByIds(ids: string[]) {
-    return this._model.find({ _id: { $in: ids } });
+    return this._model.find({ _id: { $in: ids } }).lean();
   }
 
   async findWithFilters(params: {
@@ -67,11 +71,12 @@ export class ProductRepository {
         .find(query)
         .sort({ [sort.field]: sort.direction })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       this._model.countDocuments(query),
     ]);
 
-    return { docs, total };
+    return { docs: docs as unknown as IProduct[], total };
   }
 
   async update(id: string, params: Partial<ICreateProductParams>): Promise<IProduct | null> {
@@ -91,17 +96,18 @@ export class ProductRepository {
     const filter = { $text: { $search: query }, isActive: true };
     const projection = { score: { $meta: 'textScore' } };
     const [docs, total] = await Promise.all([
-      this._model.find(filter, projection).sort({ score: { $meta: 'textScore' } }).skip(skip).limit(limit),
+      this._model.find(filter, projection).sort({ score: { $meta: 'textScore' } }).skip(skip).limit(limit).lean(),
       this._model.countDocuments(filter),
     ]);
-    return { docs, total };
+    return { docs: docs as unknown as IProduct[], total };
   }
 
   async findRelated(productId: string, categoryId: string, limit: number): Promise<IProduct[]> {
     return this._model
       .find({ category: categoryId, isActive: true, _id: { $ne: productId } })
       .sort({ rating: -1 })
-      .limit(limit);
+      .limit(limit)
+      .lean() as unknown as Promise<IProduct[]>;
   }
 
   async slugExists(slug: string): Promise<boolean> {

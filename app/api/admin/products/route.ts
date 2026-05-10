@@ -7,13 +7,11 @@ import productService from '@/lib/services/catalog/product.service';
 export const GET = apiHandler(async (request) => {
   await requireAdminAuth(request);
   const { searchParams } = new URL(request.url);
-  const query = {
-    category: searchParams.get('category') ?? undefined,
-    sort: searchParams.get('sort') ?? undefined,
+  const result = await productService.adminListProducts({
     page: searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
     limit: searchParams.get('limit') ? Number(searchParams.get('limit')) : undefined,
-  };
-  const result = await productService.listProducts(query);
+    search: searchParams.get('search') ?? undefined,
+  });
   return ok(result, 'Products fetched');
 });
 

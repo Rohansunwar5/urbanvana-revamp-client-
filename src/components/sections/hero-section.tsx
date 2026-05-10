@@ -34,13 +34,22 @@ function HeroSection() {
         fill
         priority
         sizes="100vw"
-        className="object-cover object-center"
+        className="object-cover object-right md:object-center"
       />
 
-      {/* ── Dark gradient overlay — heavy left, fades right so image shows ── */}
+      {/* Mobile overlay — vertical: dark at top for text, fades to show tower below */}
       <div
         aria-hidden="true"
-        className="absolute inset-0"
+        className="absolute inset-0 md:hidden"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(0,35,4,0.95) 0%, rgba(0,35,4,0.80) 50%, rgba(0,35,4,0.30) 100%)",
+        }}
+      />
+      {/* Desktop overlay — horizontal: dark left for text, fades right so tower shows */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 hidden md:block"
         style={{
           background:
             "linear-gradient(to right, rgba(0,35,4,0.96) 0%, rgba(0,35,4,0.82) 38%, rgba(0,35,4,0.35) 65%, rgba(0,35,4,0.10) 100%)",

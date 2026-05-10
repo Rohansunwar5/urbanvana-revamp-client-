@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
@@ -16,17 +18,26 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "*.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-*.r2.dev",
+      },
     ],
     deviceSizes: [375, 640, 768, 1024, 1280, 1536],
     imageSizes: [64, 128, 256, 384],
+    minimumCacheTTL: 2592000, // 30 days — product images don't change often
   },
 
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["lucide-react", "motion/react"],
   },
 
   /* Native Node.js modules — must run in Node.js runtime, not edge */
-  serverExternalPackages: ["mongoose", "bcrypt", "aws-sdk", "winston", "winston-cloudwatch"],
+  serverExternalPackages: ["mongoose", "bcrypt", "winston", "winston-cloudwatch"],
 
   /* Compress responses */
   compress: true,

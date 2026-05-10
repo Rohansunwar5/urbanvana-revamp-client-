@@ -6,10 +6,13 @@ import { RatingStars } from "@/components/product/rating-stars"
 import { PriceDisplay } from "@/components/product/price-display"
 import { StockBadge } from "@/components/product/stock-badge"
 import { AddToCartBtn } from "@/components/product/add-to-cart-btn"
+import { WishlistBtn } from "@/components/product/wishlist-btn"
 
 export interface ProductCardProps {
   id: string
   slug: string
+  defaultVariantId?: string
+  defaultVariantLabels?: string[]
   name: string
   category: string
   image: string
@@ -22,17 +25,6 @@ export interface ProductCardProps {
   badge?: "new" | "bestseller" | "sale" | "organic" | "low-stock" | "sold-out"
   className?: string
 }
-
-/* ── ProductCard ─────────────────────────────────────────────────────────
-   brandtheme rules:
-   - image aspect-ratio 4/3 — never distort, always object-cover
-   - card: 12px radius, ink shadow, -translate-y-1 hover lift
-   - one primary CTA per card (Add to Cart)
-   - badge overlaid top-left on image
-   - category label: Raleway uppercase xs muted
-   - name: Lora font, 2-line clamp
-   - sold-out: AddToCartBtn disabled, image grayscale
-───────────────────────────────────────────────────────────────────────── */
 
 function ProductCard({
   id,
@@ -47,6 +39,8 @@ function ProductCard({
   reviewCount,
   stock,
   badge,
+  defaultVariantId,
+  defaultVariantLabels,
   className,
 }: ProductCardProps) {
   const isSoldOut = stock <= 0
@@ -63,37 +57,45 @@ function ProductCard({
         className
       )}
     >
-      {/* ── Product image ── */}
+      {/* Full-card clickable overlay — behind all interactive elements */}
       <Link
         href={`/shop/${slug}`}
         aria-label={`View ${name}`}
         tabIndex={-1}
-        className="block focus-visible:outline-none"
-      >
-        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-bg-subtle)]">
-          <Image
-            src={image}
-            alt={imageAlt}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className={cn(
-              "object-cover transition-transform duration-[300ms]",
-              "group-hover:scale-[1.03]",
-              isSoldOut && "grayscale opacity-70"
-            )}
-          />
+        className="absolute inset-0 z-0 rounded-[12px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)]"
+      />
 
-          {/* Badge overlay */}
-          {badge && (
-            <div className="absolute left-3 top-3 z-10">
-              <Badge variant={badge} shape="tag" />
-            </div>
+      {/* ── Product image — pointer-events-none so clicks fall through to overlay link ── */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-bg-subtle)] pointer-events-none">
+        <Image
+          src={image}
+          alt={imageAlt}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className={cn(
+            "object-cover transition-transform duration-[300ms]",
+            "group-hover:scale-[1.03]",
+            isSoldOut && "grayscale opacity-70"
           )}
-        </div>
-      </Link>
+        />
 
-      {/* ── Card body ── */}
-      <div className="flex flex-1 flex-col gap-3 p-4">
+        {/* Badge overlay */}
+        {badge && (
+          <div className="absolute left-3 top-3 z-10">
+            <Badge variant={badge} shape="tag" />
+          </div>
+        )}
+
+        {/* Wishlist button — pointer-events-auto so it still works */}
+        <WishlistBtn
+          productId={id}
+          className="absolute right-2.5 top-2.5 z-10 h-8 w-8 bg-white/80 shadow-sm backdrop-blur-sm pointer-events-auto"
+          iconClassName="h-4 w-4"
+        />
+      </div>
+
+      {/* ── Card body — pointer-events-none so clicks fall through to the overlay link ── */}
+      <div className="relative z-10 flex flex-1 flex-col gap-2 p-3 sm:gap-3 sm:p-4 pointer-events-none">
 
         {/* Category label */}
         <p className="font-body text-[11px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
@@ -101,27 +103,33 @@ function ProductCard({
         </p>
 
         {/* Product name */}
-        <Link
-          href={`/shop/${slug}`}
+        <span
           className={cn(
-            "font-heading text-base font-semibold leading-snug",
+            "font-heading text-sm sm:text-base font-semibold leading-snug",
             "text-[var(--color-text-primary)]",
             "line-clamp-2",
-            "hover:text-[var(--color-primary)] transition-colors duration-[150ms]",
-            "focus-visible:outline-none focus-visible:ring-2",
-            "focus-visible:ring-[var(--color-primary)] focus-visible:rounded-[4px]"
+            "group-hover:text-[var(--color-primary)] transition-colors duration-[150ms]",
           )}
         >
           {name}
-        </Link>
+        </span>
 
-        {/* Rating */}
-        <RatingStars
-          rating={rating}
-          reviewCount={reviewCount}
-          size="sm"
-          reviewsHref={`/shop/${slug}#reviews`}
-        />
+        {/* Variant labels */}
+        {defaultVariantLabels && defaultVariantLabels.length > 0 && (
+          <p className="font-body text-[9px] sm:text-[10px] text-[var(--color-text-muted)] truncate">
+            {defaultVariantLabels.join(" · ")}
+          </p>
+        )}
+
+        {/* Rating — re-enable pointer events so the reviews link works */}
+        <div className="pointer-events-auto">
+          <RatingStars
+            rating={rating}
+            reviewCount={reviewCount}
+            size="sm"
+            reviewsHref={`/shop/${slug}#reviews`}
+          />
+        </div>
 
         {/* Spacer pushes price + CTA to bottom */}
         <div className="flex-1" />
@@ -136,11 +144,13 @@ function ProductCard({
         {/* Stock status */}
         <StockBadge stock={stock} />
 
-        {/* Add to cart */}
-        <AddToCartBtn
-          productId={id}
-          disabled={isSoldOut}
-        />
+        {/* Add to cart — re-enable pointer events */}
+        <div className="pointer-events-auto">
+          <AddToCartBtn
+            variantId={defaultVariantId ?? ""}
+            disabled={isSoldOut || !defaultVariantId}
+          />
+        </div>
       </div>
     </article>
   )

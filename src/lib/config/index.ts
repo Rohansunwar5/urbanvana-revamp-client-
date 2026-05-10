@@ -10,7 +10,6 @@ const config = {
   CLOUDWATCH_LOGS_SECRET: process.env.CLOUDWATCH_LOGS_SECRET as string,
   CLOUDWATCH_LOGS_REGION: process.env.CLOUDWATCH_LOGS_REGION as string,
   SERVER_NAME: `${process.env.SERVER_NAME}-${process.env.NODE_ENV}` as string,
-  S3_BUCKET_NAME: process.env.S3_BUCKET_NAME as string,
   AWS_ACCESS_ID: process.env.AWS_ACCESS_ID as string,
   AWS_SECRET: process.env.AWS_SECRET as string,
   AWS_REGION: process.env.AWS_REGION as string,

@@ -22,6 +22,7 @@ interface ICheckoutActor {
 interface ICheckoutBody {
   shippingAddress: IShippingAddress;
   customerEmail: string;
+  paymentMethod: 'online' | 'cod';
   guestInfo?: { name: string; email: string; phone: string };
 }
 
@@ -92,6 +93,39 @@ class CheckoutService {
     const total = discountedSubtotal + shippingCharge + shippingTax;
 
     const orderId = `SOV-${generateOrderId()}`;
+
+    if (body.paymentMethod === 'cod') {
+      await this._orderRepository.create({
+        orderId,
+        userId: actor.userId ?? null,
+        customerEmail: body.customerEmail,
+        guestInfo: body.guestInfo ?? null,
+        sessionId: actor.userId ? null : actor.sessionId,
+        items: orderItems,
+        shippingAddress: body.shippingAddress,
+        billing: { subtotal, couponCode, couponDiscount, shippingCharge, shippingTax, total },
+        couponId,
+        payment: {
+          gateway: 'cod',
+          razorpayOrderId: null,
+          razorpayPaymentId: null,
+          razorpaySignature: null,
+          status: 'pending',
+          method: 'cod',
+          paidAt: null,
+        },
+      });
+
+      // Clear cart after successful COD order
+      if (actor.userId) {
+        await this._cartRepository.clearItems(actor.userId);
+      } else {
+        await guestCartCacheManager.remove({ sessionId: actor.sessionId });
+      }
+
+      return { orderId, paymentMethod: 'cod' as const };
+    }
+
     const razorpayOrder = await createRazorpayOrder({
       amountInPaise: Math.round(total * 100),
       receipt: orderId,
@@ -106,14 +140,7 @@ class CheckoutService {
       sessionId: actor.userId ? null : actor.sessionId,
       items: orderItems,
       shippingAddress: body.shippingAddress,
-      billing: {
-        subtotal,
-        couponCode,
-        couponDiscount,
-        shippingCharge,
-        shippingTax,
-        total,
-      },
+      billing: { subtotal, couponCode, couponDiscount, shippingCharge, shippingTax, total },
       couponId,
       payment: {
         gateway: 'razorpay',
@@ -128,6 +155,7 @@ class CheckoutService {
 
     return {
       orderId,
+      paymentMethod: 'online' as const,
       razorpayOrderId: razorpayOrder.id,
       razorpayKeyId: config.RAZORPAY_KEY_ID,
       amount: total,

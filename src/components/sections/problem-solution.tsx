@@ -81,8 +81,8 @@ function ProblemSolution() {
             </div>
 
             <Compare
-              firstImage="/spoiled.png"
-              secondImage="/fresh.png"
+              firstImage="/fresh.png"
+              secondImage="/spoiled.png"
               firstImageClassName="object-cover object-center"
               secondImageClassname="object-cover object-center"
               className="h-[340px] w-full md:h-[520px]"

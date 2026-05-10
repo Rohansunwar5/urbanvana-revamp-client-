@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { NotFoundError } from '@/lib/errors/not-found.error';
 import { WishlistRepository } from '@/lib/repository/wishlist.repository';
 import { ProductRepository } from '@/lib/repository/product.repository';
@@ -14,7 +15,7 @@ class WishlistService {
     const wishlist = await this._wishlistRepository.findByUserId(userId);
     if (!wishlist?.products.length) return { products: [] };
 
-    const productIds = wishlist.products.map(id => id.toString());
+    const productIds = wishlist.products.map((id: mongoose.Types.ObjectId) => id.toString());
     const [products, priceMaps] = await Promise.all([
       this._productRepository.findByIds(productIds),
       this._variantRepository.getMinPriceByProductIds(productIds),

@@ -12,7 +12,7 @@ export const PUT = apiHandler(async (request) => {
   if (!file) throw new BadRequestError('No file uploaded');
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const fileName = await uploadService.upload(buffer, file.type, 'profile-images', file.name);
-  await authService.updateProfileImage(user._id, fileName);
-  return ok({ fileName }, 'Profile image updated');
+  const url = await uploadService.upload(buffer, file.type, 'profile-images');
+  await authService.updateProfileImage(user._id, url);
+  return ok({ url }, 'Profile image updated');
 });

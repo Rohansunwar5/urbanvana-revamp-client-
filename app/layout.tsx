@@ -7,6 +7,8 @@ import { Footer } from "@/components/layout/footer"
 import { Toaster } from "@/components/ui/sonner"
 import { CartProvider } from "@/lib/cart-context"
 import { CartDrawer } from "@/components/cart/cart-drawer"
+import { AuthProvider } from "@/lib/auth-context"
+import { WishlistProvider } from "@/lib/wishlist-context"
 
 /* Primary — Inter: clean geometric sans, headings + UI */
 const inter = Inter({
@@ -63,6 +65,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={cn(
         "h-full antialiased",
         inter.variable,
@@ -70,6 +73,8 @@ export default function RootLayout({
       )}
     >
       <body className="flex min-h-dvh flex-col bg-[var(--color-bg)] font-[var(--font-body)] text-[var(--color-text-primary)]">
+        <AuthProvider>
+        <WishlistProvider>
         <CartProvider>
           {/* Skip to main content — first focusable element */}
           <a href="#main-content" className="skip-link">
@@ -100,6 +105,8 @@ export default function RootLayout({
           }}
           />
         </CartProvider>
+        </WishlistProvider>
+        </AuthProvider>
       </body>
     </html>
   )

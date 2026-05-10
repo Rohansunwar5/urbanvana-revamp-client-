@@ -517,3 +517,9 @@ html[data-zone-lit="true"] .illuminated-section {
     @apply font-sans;
   }
 }
+
+@layer components {
+  .input-base {
+    @apply w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 transition-shadow;
+  }
+}

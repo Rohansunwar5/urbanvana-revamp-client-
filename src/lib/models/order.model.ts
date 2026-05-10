@@ -33,8 +33,8 @@ export interface IBilling {
 }
 
 export interface IPayment {
-  gateway: 'razorpay';
-  razorpayOrderId: string;
+  gateway: 'razorpay' | 'cod';
+  razorpayOrderId: string | null;
   razorpayPaymentId: string | null;
   razorpaySignature: string | null;
   status: 'pending' | 'paid' | 'failed' | 'refunded';

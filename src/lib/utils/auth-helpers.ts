@@ -13,9 +13,17 @@ interface IJWTPayload {
 
 function extractBearerToken(request: Request): string | null {
   const authHeader = request.headers.get('authorization');
-  if (!authHeader) return null;
-  const parts = authHeader.split(' ');
-  return parts[1] ?? null;
+  if (authHeader) {
+    const parts = authHeader.split(' ');
+    return parts[1] ?? null;
+  }
+  // Fall back to HTTP-only cookie for browser requests
+  const cookieHeader = request.headers.get('cookie');
+  if (cookieHeader) {
+    const match = cookieHeader.match(/(?:^|;\s*)auth_token=([^;]+)/);
+    if (match?.[1]) return decodeURIComponent(match[1]);
+  }
+  return null;
 }
 
 export async function getAuthUser(request: Request): Promise<{ _id: string } | null> {

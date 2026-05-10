@@ -29,7 +29,7 @@ class ProductVariantService {
     params: {
       sku?: string;
       price: number;
-      originalPrice: number;
+      originalPrice?: number;
       stock: number;
       images?: string[];
       attributes: { attributeId: string; valueId: string }[];
@@ -38,13 +38,17 @@ class ProductVariantService {
     const product = await this._productRepository.findById(productId);
     if (!product) throw new NotFoundError('Product not found');
 
-    const resolvedAttributes = await this._resolveAttributes(params.attributes);
+    const resolvedAttributes = params.attributes.length
+      ? await this._resolveAttributes(params.attributes)
+      : [];
 
-    const variantKey = generateVariantKey(
-      resolvedAttributes.map(a => ({ attributeSlug: a.attributeSlug, valueSlug: a.valueSlug })),
-    );
+    const variantKey = resolvedAttributes.length
+      ? generateVariantKey(resolvedAttributes.map(a => ({ attributeSlug: a.attributeSlug, valueSlug: a.valueSlug })))
+      : `no-attrs-${Date.now()}`;
 
-    const keyExists = await this._variantRepository.variantKeyExists(productId, variantKey);
+    const keyExists = resolvedAttributes.length
+      ? await this._variantRepository.variantKeyExists(productId, variantKey)
+      : false;
     if (keyExists) throw new BadRequestError('A variant with this attribute combination already exists');
 
     const sku = await this._ensureUniqueSku(params.sku);
@@ -53,7 +57,7 @@ class ProductVariantService {
       product: productId,
       sku,
       price: params.price,
-      originalPrice: params.originalPrice,
+      originalPrice: params.originalPrice ?? params.price,
       stock: params.stock,
       images: params.images,
       attributes: resolvedAttributes,
@@ -127,10 +131,10 @@ class ProductVariantService {
       });
     }
 
-    const created = toCreate.length ? await this._variantRepository.bulkCreate(toCreate) : [];
+    const createdDocs = toCreate.length ? await this._variantRepository.bulkCreate(toCreate) : [];
     await productDetailCacheManager.remove({ slug: product.slug });
 
-    return { created: created.length, skipped };
+    return { created: createdDocs.length, skipped, variants: createdDocs };
   }
 
   async updateVariant(

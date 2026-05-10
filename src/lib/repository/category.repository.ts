@@ -21,12 +21,12 @@ export class CategoryRepository {
   }
 
   async findBySlug(slug: string): Promise<ICategory | null> {
-    return this._model.findOne({ slug });
+    return this._model.findOne({ slug }).lean() as Promise<ICategory | null>;
   }
 
   async findAll(isActive?: boolean): Promise<ICategory[]> {
     const filter = isActive !== undefined ? { isActive } : {};
-    return this._model.find(filter).sort({ displayOrder: 1, name: 1 });
+    return this._model.find(filter).sort({ displayOrder: 1, name: 1 }).lean() as unknown as Promise<ICategory[]>;
   }
 
   async update(id: string, params: Partial<ICreateCategoryParams>): Promise<ICategory | null> {
