@@ -25,10 +25,10 @@ function BestsellerStrip({ products }: { products: CatalogProduct[] }) {
           <h2 className="font-heading text-4xl font-black uppercase leading-[1.05] tracking-tight text-[var(--color-ink)] md:text-5xl">
             Grow Fresh.<br />Eat Well.<br />Every Day.
           </h2>
-          <p className="mt-5 max-w-[480px] font-body text-base leading-relaxed text-[var(--color-text-muted)]">
+          {/* <p className="mt-5 max-w-[480px] font-body text-base leading-relaxed text-[var(--color-text-muted)]">
             Three products. One mission — make growing fresh food at home as
             simple as possible. Pick your starting point.
-          </p>
+          </p> */}
         </div>
 
         {/* Bordered grid */}

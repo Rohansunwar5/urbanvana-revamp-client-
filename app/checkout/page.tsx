@@ -503,7 +503,7 @@ export default function CheckoutPage() {
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="First Name" id="first-name" name="firstName" placeholder="Priya" required autoComplete="given-name" />
-                <Field label="Last Name"  id="last-name"  name="lastName"  placeholder="Mehta" required autoComplete="family-name" />
+                <Field label="Last Name" id="last-name" name="lastName" placeholder="Mehta" required autoComplete="family-name" />
                 <div className="sm:col-span-2">
                   <Field
                     label="Email"
@@ -524,7 +524,7 @@ export default function CheckoutPage() {
                 <div className="sm:col-span-2">
                   <Field label="Address Line 2" id="address2" name="address2" placeholder="Landmark (optional)" autoComplete="address-line2" />
                 </div>
-                <Field label="City"    id="city"    name="city"    placeholder="Bangalore" required autoComplete="address-level2" />
+                <Field label="City" id="city" name="city" placeholder="Bangalore" required autoComplete="address-level2" />
                 <Field label="Pincode" id="pincode" name="pincode" type="text" inputMode="numeric" pattern="[0-9]{6}" placeholder="560001" required autoComplete="postal-code" />
                 <div className="sm:col-span-2">
                   <Field label="State" id="state" name="state" placeholder="Karnataka" required autoComplete="address-level1" />
