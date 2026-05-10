@@ -225,7 +225,7 @@ function Navbar() {
               className="flex items-center rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
               <Image
-                src="/logo.png"
+                src="/logo.webp"
                 alt="Urbanvana"
                 width={140}
                 height={52}
@@ -478,7 +478,7 @@ function Navbar() {
         <div className="flex h-[68px] items-center justify-between border-b border-white/[0.08] px-5">
           <Link href="/" onClick={() => setDrawerOpen(false)}>
             <Image
-              src="/logo.png"
+              src="/logo.webp"
               alt="Urbanvana"
               width={110}
               height={40}

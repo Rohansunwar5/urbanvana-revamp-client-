@@ -18,7 +18,7 @@ const REVIEWS = [
     rating:       5,
     productName:  "Tower Pro 30",
     productHref:  "/shop/aeroponic-tower-pro-30",
-    productImage: "/mock1.png",
+    productImage: "/mock1.webp",
     quote:        "Set up in 20 mins. Fresh basil & spinach in 3 weeks.",
   },
   {
@@ -28,7 +28,7 @@ const REVIEWS = [
     rating:       5,
     productName:  "Starter Bundle",
     productHref:  "/shop/bundles",
-    productImage: "/mock2.png",
+    productImage: "/mock2.webp",
     quote:        "30 plants on a kitchen counter. Foolproof nutrients.",
   },
   {
@@ -38,7 +38,7 @@ const REVIEWS = [
     rating:       5,
     productName:  "Herb Starter Kit",
     productHref:  "/shop/herb-seed-starter-kit",
-    productImage: "/mock3.png",
+    productImage: "/mock3.webp",
     quote:        "Kids eat veg they used to refuse — they grew it themselves!",
   },
   {
@@ -48,7 +48,7 @@ const REVIEWS = [
     rating:       5,
     productName:  "Grow Pack",
     productHref:  "/shop/nutrients",
-    productImage: "/mock4.png",
+    productImage: "/mock4.webp",
     quote:        "Every ingredient checked. Clean formula. Consistent growth.",
   },
   {
@@ -58,7 +58,7 @@ const REVIEWS = [
     rating:       5,
     productName:  "Tower Pro 30",
     productHref:  "/shop/aeroponic-tower-pro-30",
-    productImage: "/mock1.png",
+    productImage: "/mock1.webp",
     quote:        "Quiet, compact, and beautiful. Fresh greens every morning.",
   },
   {
@@ -68,7 +68,7 @@ const REVIEWS = [
     rating:       5,
     productName:  "Grow Pack",
     productHref:  "/shop/nutrients",
-    productImage: "/mock4.png",
+    productImage: "/mock4.webp",
     quote:        "Non-toxic and certified. I recommend this to all my clients.",
   },
   {
@@ -78,7 +78,7 @@ const REVIEWS = [
     rating:       5,
     productName:  "Herb Starter Kit",
     productHref:  "/shop/herb-seed-starter-kit",
-    productImage: "/mock3.png",
+    productImage: "/mock3.webp",
     quote:        "First harvest in under a month. Couldn't believe how easy it was.",
   },
   {
@@ -88,7 +88,7 @@ const REVIEWS = [
     rating:       5,
     productName:  "Starter Bundle",
     productHref:  "/shop/bundles",
-    productImage: "/mock2.png",
+    productImage: "/mock2.webp",
     quote:        "The bundle has everything. Zero separate purchases needed.",
   },
 ]

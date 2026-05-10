@@ -58,7 +58,7 @@ export default async function HomePage() {
       <CategorySection categories={categories} />
       <ProductCarousel products={featured.length > 0 ? featured : bestsellers} />
       <ProblemSolutionLazy />
-      <HowItWorks />
+      {/* <HowItWorks /> */}
       <Testimonials />
       <NewsletterBand />
     </>

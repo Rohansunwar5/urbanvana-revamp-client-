@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Container } from "@/components/layout/container"
 
 /* ── ProblemSolution — drag-to-compare before/after ─────────────────────
-   Large Compare slider (spoiled.png vs fresh.png) as the visual centrepiece.
+   Large Compare slider (spoiled.webp vs fresh.webp) as the visual centrepiece.
    Labels pinned inside the image zones. Comparison rows beneath.
    "use client" required because Compare is a client component.
 ───────────────────────────────────────────────────────────────────────── */
@@ -81,8 +81,8 @@ function ProblemSolution() {
             </div>
 
             <Compare
-              firstImage="/fresh.png"
-              secondImage="/spoiled.png"
+              firstImage="/fresh.webp"
+              secondImage="/spoiled.webp"
               firstImageClassName="object-cover object-center"
               secondImageClassname="object-cover object-center"
               className="h-[340px] w-full md:h-[520px]"
