@@ -32,24 +32,21 @@ function BestsellerStrip({ products }: { products: CatalogProduct[] }) {
         </div>
 
         {/* Bordered grid */}
-        <div className="overflow-hidden border border-[var(--color-border-strong)]">
-          <div className="grid grid-cols-2 sm:grid-cols-3">
-            {products.slice(0, 3).map((p, i) => {
+        <div
+          className="overflow-hidden border border-[var(--color-border-strong)]"
+          style={{ backgroundColor: "var(--color-border-strong)" }}
+        >
+          <div className="grid grid-cols-2 gap-px sm:grid-cols-4">
+            {products.slice(0, 4).map((p, i) => {
               const discount =
                 p.originalMinPrice && p.originalMinPrice > p.minPrice
                   ? Math.round(((p.originalMinPrice - p.minPrice) / p.originalMinPrice) * 100)
                   : 0
-              const isLast = i === Math.min(products.length, 3) - 1
 
               return (
                 <article
                   key={p._id}
-                  className={[
-                    "group relative flex flex-col",
-                    !isLast
-                      ? "border-b border-[var(--color-border-strong)] sm:border-b-0 sm:border-r"
-                      : "",
-                  ].join(" ")}
+                  className="group relative flex flex-col"
                 >
                   {/* Full-card overlay link — behind interactive elements */}
                   <Link

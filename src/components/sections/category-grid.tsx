@@ -116,14 +116,14 @@ function CategorySection({ categories }: { categories: CategoryCardData[] }) {
                 {cat.name}
               </p>
 
-              {/* Tagline + CTA — animate up from below on hover */}
-              <div className="translate-y-4 opacity-0 transition-all duration-[380ms] ease-out group-hover:translate-y-0 group-hover:opacity-100">
+              {/* Tagline + CTA — always visible on mobile, animate up on desktop */}
+              <div className="transition-all duration-[380ms] ease-out md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
                 {cat.description && (
-                  <p className="mt-2 font-body text-[13px] leading-snug text-white/65">
+                  <p className="mt-2 hidden font-body text-[13px] leading-snug text-white/65 md:block">
                     {cat.description}
                   </p>
                 )}
-                <span className="mt-3 inline-flex items-center gap-1.5 font-heading text-[11px] font-bold uppercase tracking-widest text-[var(--color-primary)]">
+                <span className="mt-3 inline-flex items-center gap-1.5 font-heading text-[11px] font-bold uppercase tracking-widest text-white">
                   Shop now
                   <ArrowUpRight size={12} strokeWidth={2.5} aria-hidden="true" />
                 </span>
