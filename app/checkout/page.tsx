@@ -394,9 +394,13 @@ export default function CheckoutPage() {
     }
 
     try {
+      const checkoutHeaders: Record<string, string> = { "Content-Type": "application/json" }
+      const sid = typeof window !== "undefined" ? localStorage.getItem("uv_cart_sid") : null
+      if (sid) checkoutHeaders["x-session-id"] = sid
+
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: checkoutHeaders,
         credentials: "include",
         body: JSON.stringify(body),
       })
