@@ -56,23 +56,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        source: "/api/:path*",
-        headers: [
-          {
-            key: "Access-Control-Allow-Origin",
-            value: process.env.CORS_ORIGINS ?? "*",
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET,POST,PATCH,PUT,DELETE,OPTIONS",
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "Authorization, Content-Type, x-session-id",
-          },
-        ],
-      },
     ];
   },
 };

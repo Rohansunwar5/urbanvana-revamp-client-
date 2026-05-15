@@ -55,7 +55,7 @@ const FOOTER_COLS = [
   {
     heading: "Support",
     links: [
-      { label: "FAQ",              href: "/faq"             },
+      { label: "Help & Support",   href: "/support"         },
       { label: "Order Tracking",   href: "/account/orders"  },
       { label: "Shipping Policy",  href: "/shipping"        },
       { label: "Return Policy",    href: "/returns"         },
