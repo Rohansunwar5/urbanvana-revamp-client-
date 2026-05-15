@@ -1,9 +1,8 @@
 import ejs from 'ejs';
 import fs from 'fs';
 import path from 'path';
-import { SendEmailCommand } from '@aws-sdk/client-ses';
-import { BadRequestError } from '@/lib/errors/bad-request.error';
-import { ses } from '@/lib/utils/ses.util';
+import config from '@/lib/config';
+import { transporter } from '@/lib/utils/mailer.util';
 
 const TEMPLATES_DIR = path.join(process.cwd(), 'src', 'templates');
 
@@ -15,21 +14,13 @@ class MailService {
       'utf8',
     );
 
-    const params = {
-      Destination: { ToAddresses: [toEmail] },
-      Message: {
-        Body: {
-          Html: {
-            Charset: 'UTF-8',
-            Data: ejs.render(templateContent, templateData),
-          },
-        },
-        Subject: { Charset: 'UTF-8', Data: subject },
-      },
-      Source: 'WorkPlay Studio Pvt Ltd. <no-reply@workplay.digital>',
-    };
+    await transporter.sendMail({
+      from: `Urbanvana <${config.GMAIL_USER}>`,
+      to: toEmail,
+      subject,
+      html: ejs.render(templateContent, templateData),
+    });
 
-    await ses.send(new SendEmailCommand(params));
     return {};
   }
 

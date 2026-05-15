@@ -33,6 +33,8 @@ const config = {
   STANDARD_SHIPPING_CHARGE: Number(process.env.STANDARD_SHIPPING_CHARGE) || 499,
   SHIPPING_TAX_RATE: 0.18,
   CORS_ORIGINS: process.env.CORS_ORIGINS as string,
+  GMAIL_USER: process.env.GMAIL_USER as string,
+  GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD as string,
 };
 
 export default config;

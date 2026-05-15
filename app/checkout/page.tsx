@@ -417,7 +417,10 @@ export default function CheckoutPage() {
 
       if (result.paymentMethod === "cod") {
         await clearCart()
-        router.push(`/orders/${result.orderId}`)
+        const dest = isGuest
+          ? `/orders/${result.orderId}?email=${encodeURIComponent(body.customerEmail)}`
+          : `/orders/${result.orderId}`
+        router.push(dest)
         return
       }
 
@@ -456,7 +459,10 @@ export default function CheckoutPage() {
             })
             if (!verifyRes.ok) throw new Error("Verification failed")
             await clearCart()
-            router.push(`/orders/${result.orderId}`)
+            const dest = isGuest
+              ? `/orders/${result.orderId}?email=${encodeURIComponent(body.customerEmail)}`
+              : `/orders/${result.orderId}`
+            router.push(dest)
           } catch {
             setApiError("Payment received but verification failed. Your order is saved — please contact support.")
             setSubmitting(false)

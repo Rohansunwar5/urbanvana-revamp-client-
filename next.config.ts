@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
   },
 
   /* Native Node.js modules — must run in Node.js runtime, not edge */
-  serverExternalPackages: ["mongoose", "bcrypt", "winston", "winston-cloudwatch"],
+  serverExternalPackages: ["mongoose", "bcrypt", "winston", "winston-cloudwatch", "nodemailer"],
 
   /* Compress responses */
   compress: true,
