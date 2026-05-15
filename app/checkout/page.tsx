@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronRight, Check, Banknote, Loader2, ShoppingCart, Tag, X, CreditCard } from "lucide-react"
 import { Container } from "@/components/layout/container"
@@ -308,22 +308,18 @@ function OrderSummary() {
 
 /* ── Razorpay script loader ──────────────────────────────────────────── */
 
-function useRazorpay() {
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
+function loadRazorpay(): Promise<boolean> {
+  return new Promise((resolve) => {
     if ((window as unknown as Record<string, unknown>).Razorpay) {
-      setLoaded(true)
+      resolve(true)
       return
     }
     const script = document.createElement("script")
     script.src = "https://checkout.razorpay.com/v1/checkout.js"
-    script.onload = () => setLoaded(true)
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
     document.body.appendChild(script)
-    return () => { document.body.removeChild(script) }
-  }, [])
-
-  return loaded
+  })
 }
 
 /* ── Page ────────────────────────────────────────────────────────────── */
@@ -336,7 +332,6 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { items, total, subtotal, coupon, clearCart } = useCart()
-  const razorpayLoaded = useRazorpay()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("online")
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState("")
@@ -422,7 +417,8 @@ export default function CheckoutPage() {
         return
       }
 
-      if (!razorpayLoaded) {
+      const razorpayReady = await loadRazorpay()
+      if (!razorpayReady) {
         setApiError("Payment gateway failed to load. Please refresh and try again.")
         setSubmitting(false)
         return
