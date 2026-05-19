@@ -16,8 +16,8 @@ import { Container } from "@/components/layout/container"
 const TRUST_BADGES = [
   { icon: Leaf, label: "Zero\nSoil" },
   { icon: Droplets, label: "90% Less\nWater" },
-  { icon: ShieldCheck, label: "Non-Toxic\nCertified" },
-  { icon: Zap, label: "30-Min\nSetup" },
+  { icon: ShieldCheck, label: "Non GMO" },
+  { icon: Zap, label: "15-Min\nSetup" },
 ]
 
 function HeroSection() {
@@ -100,7 +100,7 @@ function HeroSection() {
             {/* CTA — immediately below trust badges */}
             <div className="pt-2">
               <Link
-                href="/shop/towers"
+                href="/shop"
                 className="inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-[15px] font-heading text-sm font-bold uppercase tracking-widest text-[var(--color-ink)] transition-all duration-150 active:scale-[0.95] hover:bg-[var(--color-primary-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-ink)]"
               >
                 Shop Towers

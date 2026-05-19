@@ -2,12 +2,13 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { CheckCircle, Clock, XCircle, Package, Truck, MapPin, ChevronRight, Loader2, RefreshCw, Banknote } from "lucide-react"
 import { Container } from "@/components/layout/container"
 import { useAuth } from "@/lib/auth-context"
 import { getImageUrl } from "@/lib/utils/image"
+import { pixelPurchase } from "@/lib/pixel"
 
 /* ── Types ───────────────────────────────────────────────────────────── */
 
@@ -197,6 +198,24 @@ export default function OrderConfirmationPage() {
     if (authLoading) return
     fetchOrder()
   }, [authLoading, fetchOrder])
+
+  const firedPurchasePixel = useRef(false)
+  useEffect(() => {
+    if (!order || firedPurchasePixel.current) return
+    const isSuccess =
+      order.payment.status === "paid" ||
+      order.payment.gateway === "cod" ||
+      order.status === "confirmed" ||
+      order.status === "processing"
+    if (!isSuccess) return
+    firedPurchasePixel.current = true
+    pixelPurchase({
+      content_ids: order.items.map((i) => i.productId),
+      value: order.billing.total,
+      currency: "INR",
+      num_items: order.items.reduce((acc, i) => acc + i.qty, 0),
+    })
+  }, [order])
 
   // Guest email prompt
   const [emailInput, setEmailInput] = useState("")

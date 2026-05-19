@@ -2,12 +2,13 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronRight, Check, Banknote, Loader2, ShoppingCart, Tag, X, CreditCard } from "lucide-react"
+import { ChevronRight, Check, Loader2, ShoppingCart, Tag, X, CreditCard, MapPin, Plus } from "lucide-react"
 import { Container } from "@/components/layout/container"
 import { useCart } from "@/lib/cart-context"
 import { useAuth } from "@/lib/auth-context"
+import { pixelInitiateCheckout } from "@/lib/pixel"
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 
@@ -47,7 +48,7 @@ function Field({
 
 /* ── Payment method option ───────────────────────────────────────────── */
 
-type PaymentMethod = "online" | "cod"
+type PaymentMethod = "online"
 
 function PaymentOption({
   id,
@@ -322,21 +323,179 @@ function loadRazorpay(): Promise<boolean> {
   })
 }
 
+/* ── Saved address picker (logged-in users only) ─────────────────────── */
+
+type SavedAddress = {
+  _id: string
+  label: string
+  fullName: string
+  phone: string
+  line1: string
+  line2?: string
+  city: string
+  state: string
+  pincode: string
+  country: string
+  isDefault: boolean
+}
+
+type AddressFields = {
+  firstName: string
+  lastName: string
+  phone: string
+  line1: string
+  line2: string
+  city: string
+  state: string
+  pincode: string
+}
+
+const EMPTY_ADDR: AddressFields = { firstName: "", lastName: "", phone: "", line1: "", line2: "", city: "", state: "", pincode: "" }
+
+function splitFullName(full: string): { firstName: string; lastName: string } {
+  const parts = full.trim().split(/\s+/)
+  const firstName = parts[0] ?? ""
+  const lastName = parts.slice(1).join(" ")
+  return { firstName, lastName }
+}
+
+function AddressPicker({ onSelect }: { onSelect: (addr: AddressFields | null) => void }) {
+  const [addresses, setAddresses] = useState<SavedAddress[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [showManual, setShowManual] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/user/addresses", { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((json) => {
+        const list: SavedAddress[] = json?.data ?? []
+        setAddresses(list)
+        if (list.length === 0) return
+        const def = list.find((a) => a.isDefault) ?? list[0]
+        setSelectedId(def._id)
+        const { firstName, lastName } = splitFullName(def.fullName)
+        onSelect({ firstName, lastName, phone: def.phone, line1: def.line1, line2: def.line2 ?? "", city: def.city, state: def.state, pincode: def.pincode })
+      })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  if (addresses.length === 0) return null
+
+  function pickAddress(addr: SavedAddress) {
+    setSelectedId(addr._id)
+    setShowManual(false)
+    const { firstName, lastName } = splitFullName(addr.fullName)
+    onSelect({ firstName, lastName, phone: addr.phone, line1: addr.line1, line2: addr.line2 ?? "", city: addr.city, state: addr.state, pincode: addr.pincode })
+  }
+
+  function pickManual() {
+    setSelectedId(null)
+    setShowManual(true)
+    onSelect(null)
+  }
+
+  return (
+    <div className="mb-5 flex flex-col gap-3">
+      <p className="font-heading text-[11px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
+        Saved Addresses
+      </p>
+      <div className="flex flex-col gap-2">
+        {addresses.map((addr) => {
+          const isSelected = selectedId === addr._id
+          return (
+            <button
+              key={addr._id}
+              type="button"
+              onClick={() => pickAddress(addr)}
+              className={[
+                "flex w-full items-start gap-3 rounded-[10px] border px-4 py-3 text-left transition-all duration-150",
+                isSelected
+                  ? "border-[var(--color-primary)] bg-[var(--color-primary-light)]/40 ring-1 ring-[var(--color-primary)]"
+                  : "border-[var(--color-border-strong)] bg-white hover:border-[var(--color-ink)]/30",
+              ].join(" ")}
+            >
+              <MapPin size={15} strokeWidth={1.5} className={["mt-0.5 shrink-0", isSelected ? "text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"].join(" ")} aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-ink)]">
+                    {addr.fullName}
+                  </p>
+                  {addr.isDefault && (
+                    <span className="rounded-full bg-[var(--color-primary-light)] px-2 py-0.5 font-heading text-[9px] font-bold uppercase tracking-widest text-[var(--color-primary)]">
+                      Default
+                    </span>
+                  )}
+                </div>
+                <p className="mt-0.5 font-body text-xs leading-snug text-[var(--color-text-muted)]">
+                  {addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}, {addr.city}, {addr.state} — {addr.pincode}
+                </p>
+                <p className="mt-0.5 font-body text-xs text-[var(--color-text-muted)]">{addr.phone}</p>
+              </div>
+              <div className={[
+                "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary)]" : "border-[var(--color-border-strong)]",
+              ].join(" ")}>
+                {isSelected && <Check size={8} strokeWidth={3} className="text-white" aria-hidden="true" />}
+              </div>
+            </button>
+          )
+        })}
+
+        <button
+          type="button"
+          onClick={pickManual}
+          className={[
+            "flex w-full items-center gap-3 rounded-[10px] border px-4 py-3 text-left transition-all duration-150",
+            showManual
+              ? "border-[var(--color-primary)] bg-[var(--color-primary-light)]/40 ring-1 ring-[var(--color-primary)]"
+              : "border-[var(--color-border-strong)] bg-white hover:border-[var(--color-ink)]/30",
+          ].join(" ")}
+        >
+          <Plus size={15} strokeWidth={1.5} className={showManual ? "text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"} aria-hidden="true" />
+          <p className="font-heading text-xs font-bold uppercase tracking-widest text-[var(--color-ink)]">
+            Use a different address
+          </p>
+          <div className={[
+            "ml-auto flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+            showManual ? "border-[var(--color-primary)] bg-[var(--color-primary)]" : "border-[var(--color-border-strong)]",
+          ].join(" ")}>
+            {showManual && <Check size={8} strokeWidth={3} className="text-white" aria-hidden="true" />}
+          </div>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ── Page ────────────────────────────────────────────────────────────── */
 
-type CheckoutResult =
-  | { paymentMethod: "cod"; orderId: string }
-  | { paymentMethod: "online"; orderId: string; razorpayOrderId: string; razorpayKeyId: string; amountInPaise: number }
+type CheckoutResult = { paymentMethod: "online"; orderId: string; razorpayOrderId: string; razorpayKeyId: string; amountInPaise: number }
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { items, total, subtotal, coupon, clearCart } = useCart()
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("online")
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState("")
 
   const isGuest = !user
+  const [addrFields, setAddrFields] = useState<AddressFields | null>(null)
+  const handleAddrSelect = useCallback((addr: AddressFields | null) => setAddrFields(addr), [])
+
+  /* Fire InitiateCheckout once when cart with items is viewed */
+  const firedCheckoutPixel = useRef(false)
+  useEffect(() => {
+    if (firedCheckoutPixel.current || items.length === 0) return
+    firedCheckoutPixel.current = true
+    const cartTotal = coupon ? total : subtotal
+    pixelInitiateCheckout({
+      content_ids: items.map((i) => i.productId),
+      num_items: items.reduce((acc, i) => acc + i.qty, 0),
+      value: cartTotal,
+      currency: "INR",
+    })
+  }, [items, coupon, total, subtotal])
 
   /* Redirect if cart is empty */
   if (items.length === 0) {
@@ -372,7 +531,7 @@ export default function CheckoutPage() {
     const fd = new FormData(form)
 
     const body = {
-      paymentMethod: paymentMethod === "cod" ? "cod" : "online",
+      paymentMethod: "online",
       customerEmail: (fd.get("email") as string) ?? user?.email ?? "",
       shippingAddress: {
         fullName: `${fd.get("firstName") ?? ""} ${fd.get("lastName") ?? ""}`.trim(),
@@ -414,15 +573,6 @@ export default function CheckoutPage() {
       }
 
       const result = json.data
-
-      if (result.paymentMethod === "cod") {
-        await clearCart()
-        const dest = isGuest
-          ? `/orders/${result.orderId}?email=${encodeURIComponent(body.customerEmail)}`
-          : `/orders/${result.orderId}`
-        router.push(dest)
-        return
-      }
 
       const razorpayReady = await loadRazorpay()
       if (!razorpayReady) {
@@ -507,9 +657,19 @@ export default function CheckoutPage() {
               <h2 className="mb-6 font-heading text-base font-bold uppercase tracking-widest text-[var(--color-ink)]">
                 Shipping Details
               </h2>
+
+              {/* Saved address picker — logged-in users only */}
+              {!isGuest && <AddressPicker onSelect={handleAddrSelect} />}
+
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="First Name" id="first-name" name="firstName" placeholder="Priya" required autoComplete="given-name" />
-                <Field label="Last Name" id="last-name" name="lastName" placeholder="Mehta" required autoComplete="family-name" />
+                <Field label="First Name" id="first-name" name="firstName" placeholder="Priya" required autoComplete="given-name"
+                  value={addrFields?.firstName ?? undefined}
+                  onChange={addrFields ? (e) => setAddrFields({ ...addrFields, firstName: e.target.value }) : undefined}
+                />
+                <Field label="Last Name" id="last-name" name="lastName" placeholder="Mehta" required autoComplete="family-name"
+                  value={addrFields?.lastName ?? undefined}
+                  onChange={addrFields ? (e) => setAddrFields({ ...addrFields, lastName: e.target.value }) : undefined}
+                />
                 <div className="sm:col-span-2">
                   <Field
                     label="Email"
@@ -523,17 +683,35 @@ export default function CheckoutPage() {
                     readOnly={!!user}
                   />
                 </div>
-                <Field label="Phone" id="phone" name="phone" type="tel" placeholder="9876543210" required autoComplete="tel" />
+                <Field label="Phone" id="phone" name="phone" type="tel" placeholder="9876543210" required autoComplete="tel"
+                  value={addrFields?.phone ?? undefined}
+                  onChange={addrFields ? (e) => setAddrFields({ ...addrFields, phone: e.target.value }) : undefined}
+                />
                 <div className="sm:col-span-2">
-                  <Field label="Address Line 1" id="address" name="address" placeholder="123 MG Road, Apartment 4B" required autoComplete="street-address" />
+                  <Field label="Address Line 1" id="address" name="address" placeholder="123 MG Road, Apartment 4B" required autoComplete="street-address"
+                    value={addrFields?.line1 ?? undefined}
+                    onChange={addrFields ? (e) => setAddrFields({ ...addrFields, line1: e.target.value }) : undefined}
+                  />
                 </div>
                 <div className="sm:col-span-2">
-                  <Field label="Address Line 2" id="address2" name="address2" placeholder="Landmark (optional)" autoComplete="address-line2" />
+                  <Field label="Address Line 2" id="address2" name="address2" placeholder="Landmark (optional)" autoComplete="address-line2"
+                    value={addrFields?.line2 ?? undefined}
+                    onChange={addrFields ? (e) => setAddrFields({ ...addrFields, line2: e.target.value }) : undefined}
+                  />
                 </div>
-                <Field label="City" id="city" name="city" placeholder="Bangalore" required autoComplete="address-level2" />
-                <Field label="Pincode" id="pincode" name="pincode" type="text" inputMode="numeric" pattern="[0-9]{6}" placeholder="560001" required autoComplete="postal-code" />
+                <Field label="City" id="city" name="city" placeholder="Bangalore" required autoComplete="address-level2"
+                  value={addrFields?.city ?? undefined}
+                  onChange={addrFields ? (e) => setAddrFields({ ...addrFields, city: e.target.value }) : undefined}
+                />
+                <Field label="Pincode" id="pincode" name="pincode" type="text" inputMode="numeric" pattern="[0-9]{6}" placeholder="560001" required autoComplete="postal-code"
+                  value={addrFields?.pincode ?? undefined}
+                  onChange={addrFields ? (e) => setAddrFields({ ...addrFields, pincode: e.target.value }) : undefined}
+                />
                 <div className="sm:col-span-2">
-                  <Field label="State" id="state" name="state" placeholder="Karnataka" required autoComplete="address-level1" />
+                  <Field label="State" id="state" name="state" placeholder="Karnataka" required autoComplete="address-level1"
+                    value={addrFields?.state ?? undefined}
+                    onChange={addrFields ? (e) => setAddrFields({ ...addrFields, state: e.target.value }) : undefined}
+                  />
                 </div>
               </div>
             </div>
@@ -551,22 +729,14 @@ export default function CheckoutPage() {
               <h2 className="mb-6 font-heading text-base font-bold uppercase tracking-widest text-[var(--color-ink)]">
                 Payment Method
               </h2>
-              <div className="flex flex-col gap-3" role="radiogroup" aria-label="Select payment method">
+              <div className="flex flex-col gap-3">
                 <PaymentOption
                   id="online"
                   label="Pay Online"
                   sublabel="UPI, Cards, Netbanking & more via Razorpay"
                   icon={CreditCard}
-                  selected={paymentMethod === "online"}
-                  onSelect={() => setPaymentMethod("online")}
-                />
-                <PaymentOption
-                  id="cod"
-                  label="Cash on Delivery"
-                  sublabel="Pay when your order arrives"
-                  icon={Banknote}
-                  selected={paymentMethod === "cod"}
-                  onSelect={() => setPaymentMethod("cod")}
+                  selected={true}
+                  onSelect={() => {}}
                 />
               </div>
             </div>
@@ -588,11 +758,11 @@ export default function CheckoutPage() {
               {submitting ? (
                 <>
                   <Loader2 size={18} strokeWidth={1.5} className="animate-spin" aria-hidden="true" />
-                  {paymentMethod === "cod" ? "Placing Order…" : "Opening Payment…"}
+                  Opening Payment…
                 </>
               ) : (
                 <>
-                  {paymentMethod === "cod" ? "Place Order" : `Pay ₹${formatINR(cartTotal + shipping)}`}
+                  {`Pay ₹${formatINR(cartTotal + shipping)}`}
                   <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
                 </>
               )}

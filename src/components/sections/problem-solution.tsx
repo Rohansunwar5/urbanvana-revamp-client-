@@ -14,14 +14,14 @@ import { Container } from "@/components/layout/container"
 const COMPARISONS = [
   {
     problem: "Soil mess, pests & watering schedules",
-    solution: "Zero soil — clean aeroponic mist",
+    solution: "Zero soil: clean aeroponic mist",
   },
   {
     problem: "Needs garden space or a balcony",
     solution: "Vertical tower fits any counter",
   },
   {
-    problem: "Seasonal gaps — no winter produce",
+    problem: "Seasonal gaps: no winter produce",
     solution: "Year-round growth under smart LED",
   },
   {
@@ -146,7 +146,7 @@ function ProblemSolution() {
           {/* CTA */}
           <div className="mt-8 flex justify-center">
             <Link
-              href="/shop/towers"
+              href="/shop"
               className="inline-flex items-center gap-2 rounded-full bg-[var(--color-ink)] px-8 py-4 font-heading text-xs font-bold uppercase tracking-widest text-white transition-all duration-200 active:scale-[0.95] hover:bg-[var(--color-primary-dark)]"
             >
               Explore Our Towers

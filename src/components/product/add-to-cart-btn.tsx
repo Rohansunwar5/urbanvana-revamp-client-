@@ -5,19 +5,21 @@ import { ShoppingCart, Loader2, Check } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/lib/cart-context"
+import { pixelAddToCart } from "@/lib/pixel"
 
 interface AddToCartBtnProps {
   variantId: string
   qty?: number
   disabled?: boolean
   className?: string
+  pixelData?: { productId: string; name: string; price: number }
 }
 
 type BtnState = "idle" | "loading" | "success"
 
 const SUCCESS_DURATION = 1800
 
-function AddToCartBtn({ variantId, qty = 1, disabled, className }: AddToCartBtnProps) {
+function AddToCartBtn({ variantId, qty = 1, disabled, className, pixelData }: AddToCartBtnProps) {
   const [state, setState] = React.useState<BtnState>("idle")
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const { addItem } = useCart()
@@ -35,6 +37,15 @@ function AddToCartBtn({ variantId, qty = 1, disabled, className }: AddToCartBtnP
       await addItem(variantId, qty)
       setState("success")
       timerRef.current = setTimeout(() => setState("idle"), SUCCESS_DURATION)
+      if (pixelData) {
+        pixelAddToCart({
+          content_ids: [pixelData.productId],
+          content_name: pixelData.name,
+          value: pixelData.price * qty,
+          currency: "INR",
+          num_items: qty,
+        })
+      }
     } catch (err) {
       setState("idle")
       toast.error(err instanceof Error ? err.message : "Could not add to cart")

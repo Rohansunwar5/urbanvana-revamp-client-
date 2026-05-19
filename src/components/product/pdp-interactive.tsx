@@ -139,20 +139,29 @@ export function PDPCartRow({
   variantId,
   productId,
   stock,
+  productName,
+  price,
 }: {
   variantId: string
   productId?: string
   stock?: number
+  productName?: string
+  price?: number
 }) {
   const [qty, setQty] = useState(1)
   const isOutOfStock = stock !== undefined && stock === 0
+
+  const pixelData =
+    productId && productName && price != null
+      ? { productId, name: productName, price }
+      : undefined
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         <QuantitySelector value={qty} onChange={setQty} max={stock} />
         <div className="flex-1">
-          <AddToCartBtn variantId={variantId} qty={qty} disabled={isOutOfStock} />
+          <AddToCartBtn variantId={variantId} qty={qty} disabled={isOutOfStock} pixelData={pixelData} />
         </div>
         {productId && (
           <WishlistBtn

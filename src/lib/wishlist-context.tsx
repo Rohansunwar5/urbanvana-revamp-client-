@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { pixelAddToWishlist } from '@/lib/pixel'
 
 type WishlistContextValue = {
   wishlisted: Set<string>
@@ -53,6 +54,10 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       }
 
       const isWishlisted = wishlisted.has(productId)
+
+      if (!isWishlisted) {
+        pixelAddToWishlist({ content_ids: [productId] })
+      }
 
       // Optimistic update
       setWishlisted((prev) => {

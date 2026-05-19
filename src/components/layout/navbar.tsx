@@ -22,7 +22,7 @@ type NavCategory = { label: string; href: string; desc: string }
 const STATIC_NAV_LINKS = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Learn",        href: "/learn" },
-  { label: "About",        href: "/about" },
+  { label: "Support",      href: "/support" },
 ]
 
 function useNavCategories() {

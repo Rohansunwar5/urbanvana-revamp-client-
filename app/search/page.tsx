@@ -8,6 +8,7 @@ import { getImageUrl } from '@/lib/utils/image'
 import { WishlistBtn } from '@/components/product/wishlist-btn'
 import { AddToCartBtn } from '@/components/product/add-to-cart-btn'
 import { cn } from '@/lib/utils'
+import { pixelSearch } from '@/lib/pixel'
 
 interface SearchProduct {
   _id: string
@@ -136,7 +137,10 @@ function SearchContent() {
         `/api/catalog/search?q=${encodeURIComponent(query)}&page=${page}&limit=12`,
       )
       const json = await res.json()
-      if (res.ok) setResult(json.data)
+      if (res.ok) {
+        setResult(json.data)
+        pixelSearch(query.trim())
+      }
     } catch {
       // silent
     } finally {

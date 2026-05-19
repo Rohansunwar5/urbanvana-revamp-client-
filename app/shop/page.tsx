@@ -18,14 +18,14 @@ function formatINR(n: number) {
 
 const BADGE_STYLES: Record<string, string> = {
   primary: "bg-[var(--color-ink)] text-white",
-  accent:  "bg-[var(--color-primary)] text-white",
+  accent: "bg-[var(--color-primary)] text-white",
 }
 
 const SORT_OPTIONS = [
-  { value: "featured",   label: "Featured" },
-  { value: "newest",     label: "Newest" },
-  { value: "rating",     label: "Top Rated" },
-  { value: "price_asc",  label: "Price: Low → High" },
+  { value: "featured", label: "Featured" },
+  { value: "newest", label: "Newest" },
+  { value: "rating", label: "Top Rated" },
+  { value: "price_asc", label: "Price: Low → High" },
   { value: "price_desc", label: "Price: High → Low" },
 ]
 
@@ -261,23 +261,23 @@ function FilterBar({
 /* ── Page inner ──────────────────────────────────────────────────────── */
 
 function ShopPageInner() {
-  const searchParams   = useSearchParams()
-  const router         = useRouter()
-  const [categories, setCategories]   = useState<ApiCategory[]>([])
-  const [products, setProducts]       = useState<CatalogProduct[]>([])
-  const [total, setTotal]             = useState(0)
-  const [page, setPage]               = useState(1)
-  const [pages, setPages]             = useState(1)
-  const [loading, setLoading]         = useState(true)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [categories, setCategories] = useState<ApiCategory[]>([])
+  const [products, setProducts] = useState<CatalogProduct[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
+  const [loading, setLoading] = useState(true)
   const [categorySlug, setCategorySlug] = useState(searchParams.get("category") ?? "")
-  const [sort, setSort]               = useState(searchParams.get("sort") ?? "featured")
+  const [sort, setSort] = useState(searchParams.get("sort") ?? "featured")
 
   /* Fetch categories once */
   useEffect(() => {
     fetch("/api/catalog/categories")
       .then((r) => r.json())
       .then((json) => setCategories(json.data ?? []))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   /* Fetch products on filter/sort/page change */
@@ -341,7 +341,7 @@ function ShopPageInner() {
               Shop<br className="hidden sm:block" /> Everything.
             </h1>
             <p className="hidden max-w-[320px] font-body text-sm leading-relaxed text-[var(--color-text-muted)] md:block">
-              Aeroponic towers, bundles, nutrients, and accessories — all you need to grow fresh food at home.
+              Aeroponic towers, bundles, nutrients, and accessories. All you need to grow fresh food at home.
             </p>
           </div>
         </Container>

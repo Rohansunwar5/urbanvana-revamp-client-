@@ -5,6 +5,7 @@ import { notFound } from "next/navigation"
 import { Star, ChevronRight } from "lucide-react"
 import { Container } from "@/components/layout/container"
 import { PDPImageGallery, PDPCartRow, PDPTabs } from "@/components/product/pdp-interactive"
+import { PixelViewContent } from "@/components/pixel/pixel-view-content"
 import { getImageUrl } from "@/lib/utils/image"
 import type { ProductDetailResponse, CatalogProduct } from "@/lib/types/catalog"
 import connectDB from "@/lib/db"
@@ -184,6 +185,12 @@ export default async function ProductPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <PixelViewContent
+        productId={product._id?.toString() ?? product.slug}
+        name={product.name}
+        category={categoryName}
+        price={price}
+      />
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <section className="bg-[var(--color-bg)] pt-8 md:pt-12">
@@ -308,7 +315,13 @@ export default async function ProductPage({
               <div className="h-px bg-[var(--color-border-strong)]" />
 
               {/* Quantity + Add to Cart */}
-              <PDPCartRow variantId={primaryVariant?._id ?? ""} productId={product._id?.toString()} stock={primaryVariant?.stock} />
+              <PDPCartRow
+                variantId={primaryVariant?._id ?? ""}
+                productId={product._id?.toString()}
+                stock={primaryVariant?.stock}
+                productName={product.name}
+                price={price}
+              />
             </div>
           </div>
         </Container>
