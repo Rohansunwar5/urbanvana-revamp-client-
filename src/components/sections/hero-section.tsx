@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Leaf, Droplets, ShieldCheck, Zap } from "lucide-react"
+import { ArrowRight, Leaf, Droplets, Phone, Zap } from "lucide-react"
 import { Container } from "@/components/layout/container"
 
 /* ── HeroSection — Biologica-faithful layout ─────────────────────────────
@@ -16,7 +16,7 @@ import { Container } from "@/components/layout/container"
 const TRUST_BADGES = [
   { icon: Leaf, label: "Zero\nSoil" },
   { icon: Droplets, label: "90% Less\nWater" },
-  { icon: ShieldCheck, label: "Non GMO" },
+  { icon: Phone, label: "Call\nAssistance" },
   { icon: Zap, label: "15-Min\nSetup" },
 ]
 

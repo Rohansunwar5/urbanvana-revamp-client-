@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useState, useEffect } from "react"
-import { Minus, Plus, Truck, RefreshCw, ShieldCheck, Star } from "lucide-react"
+import { Minus, Plus, Truck, Phone, ShieldCheck, Star } from "lucide-react"
 import { toast } from "sonner"
 import { AddToCartBtn } from "@/components/product/add-to-cart-btn"
 import { WishlistBtn } from "@/components/product/wishlist-btn"
@@ -115,7 +115,7 @@ function QuantitySelector({
 function TrustStrip() {
   const items = [
     { icon: Truck,       label: "Free delivery",  sub: "Orders above ₹999" },
-    { icon: RefreshCw,   label: "30-day returns", sub: "No questions asked" },
+    { icon: Phone,       label: "Call assistance", sub: "We're here to help" },
     { icon: ShieldCheck, label: "Chemical-free",  sub: "Certified food-safe" },
   ]
   return (

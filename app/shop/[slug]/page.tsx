@@ -316,7 +316,7 @@ export default async function ProductPage({
 
               {/* Quantity + Add to Cart */}
               <PDPCartRow
-                variantId={primaryVariant?._id ?? ""}
+                variantId={primaryVariant?._id?.toString() ?? ""}
                 productId={product._id?.toString()}
                 stock={primaryVariant?.stock}
                 productName={product.name}
