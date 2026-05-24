@@ -145,18 +145,18 @@ function Footer() {
               {/* Contact */}
               <address className="mt-6 not-italic space-y-2">
                 <a
-                  href="mailto:hello@urbanvana.in"
+                  href="mailto:urbanvana.co@gmail.com"
                   className="flex items-center gap-2 font-body text-sm text-white/60 hover:text-white transition-colors duration-[150ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-[4px]"
                 >
                   <Mail size={14} strokeWidth={1.5} aria-hidden="true" />
-                  hello@urbanvana.in
+                  urbanvana.co@gmail.com
                 </a>
                 <a
-                  href="tel:+918000000000"
+                  href="tel:+919712779666"
                   className="flex items-center gap-2 font-body text-sm text-white/60 hover:text-white transition-colors duration-[150ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-[4px]"
                 >
                   <Phone size={14} strokeWidth={1.5} aria-hidden="true" />
-                  +91 80000 00000
+                  +91 97127 79666
                 </a>
                 <span className="flex items-start gap-2 font-body text-sm text-white/60">
                   <MapPin
@@ -172,8 +172,8 @@ function Footer() {
               {/* Social links */}
               <div className="mt-6 flex items-center gap-3">
                 {[
-                  { href: "https://instagram.com/urbanvana", icon: InstagramIcon, label: "Instagram" },
-                  { href: "https://linkedin.com/company/urbanvana", icon: LinkedinIcon, label: "LinkedIn" },
+                  { href: "https://www.instagram.com/urbanvana.co?igsh=dGl1NXY1cms1MGVz", icon: InstagramIcon, label: "Instagram" },
+                  { href: "https://www.linkedin.com/company/urbanvana.co", icon: LinkedinIcon, label: "LinkedIn" },
                   { href: "https://facebook.com/urbanvana",  icon: Share2,         label: "Facebook"  },
                   { href: "https://youtube.com/@urbanvana",  icon: Share2,         label: "YouTube"   },
                 ].map(({ href, icon: Icon, label }) => (

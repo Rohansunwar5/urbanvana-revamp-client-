@@ -10,7 +10,7 @@ import { Container } from "@/components/layout/container"
                  →  trust badges (icon above label, 4 in a row)  →  CTA.
      Right 45%:  image bleeds through overlay naturally.
    The whole content block is vertically centred (items-center).
-   Everything fits inside h-dvh — no overflow, no split justify-between.
+   Section grows to fit content (min-h-dvh) so nothing clips at high zoom.
 ───────────────────────────────────────────────────────────────────────── */
 
 const TRUST_BADGES = [
@@ -24,7 +24,7 @@ function HeroSection() {
   return (
     <section
       aria-label="Hero — Grow fresh food at home"
-      className="relative h-dvh min-h-[580px] overflow-hidden bg-[var(--color-ink)]"
+      className="relative min-h-dvh min-h-[580px] overflow-hidden bg-[var(--color-ink)]"
     >
       {/* ── Full-bleed background image ── */}
       <Image

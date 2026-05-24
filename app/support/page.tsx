@@ -357,7 +357,7 @@ export default function SupportPage() {
                   {/* Quick contact cards */}
                   <div className="grid grid-cols-2 gap-3 mb-8">
                     <a
-                      href="mailto:hello@urbanvana.in"
+                      href="mailto:urbanvana.co@gmail.com"
                       className="group flex flex-col items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-white p-5 text-center transition-all duration-300 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5"
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] group-hover:scale-110 transition-transform duration-300">
@@ -368,7 +368,7 @@ export default function SupportPage() {
                       </span>
                     </a>
                     <a
-                      href="tel:+918000000000"
+                      href="tel:+919712779666"
                       className="group flex flex-col items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-white p-5 text-center transition-all duration-300 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5"
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] group-hover:scale-110 transition-transform duration-300">

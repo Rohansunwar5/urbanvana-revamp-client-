@@ -72,12 +72,12 @@ export default function ContactPage() {
               <InfoCard
                 icon={Mail}
                 title="Email"
-                lines={['support@urbanvana.in']}
+                lines={['urbanvana.co@gmail.com']}
               />
               <InfoCard
                 icon={Phone}
                 title="Phone"
-                lines={['+91 98765 43210', 'Mon–Sat, 9 am – 6 pm']}
+                lines={['+91 97127 79666', 'Mon–Sat, 9 am – 6 pm']}
               />
               <InfoCard
                 icon={MapPin}
