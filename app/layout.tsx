@@ -58,6 +58,11 @@ export const metadata: Metadata = {
       "Premium aeroponic towers, seeds, plants, and nutrients for growing fresh food at home.",
   },
   robots: { index: true, follow: true },
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 }
 
 export default function RootLayout({
