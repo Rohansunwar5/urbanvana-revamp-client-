@@ -36,11 +36,15 @@ const FAQS = [
       },
       {
         question: 'Do I need special water?',
-        answer: 'Regular tap water works. If your water is very hard, we recommend a basic TDS check. Our nutrient guide includes water preparation tips.',
+        answer: 'Use water below 100 ppm. 4 hour of sunlight is required.',
       },
       {
         question: 'Can I use the tower indoors?',
         answer: 'Yes! All towers work indoors near a sunny window. The CityTower XL 60 has an optional full-spectrum LED light kit for year-round indoor growing.',
+      },
+      {
+        question: "What if I don't have any prior knowledge of farming?",
+        answer: 'Don\u2019t worry, we\u2019ve got you completely covered! Our system is designed to be incredibly easy to maintain, even for absolute beginners. To ensure your success, we provide a comprehensive setup manual, step-by-step video guides, and dedicated phone assistance to walk you through everything. You\u2019re in safe hands!',
       },
     ],
   },
@@ -53,7 +57,7 @@ const FAQS = [
       },
       {
         question: 'What is your return policy?',
-        answer: 'Returns are accepted within 15 days for unused items in original condition. Defective or damaged items are eligible for replacement or refund per our policy.',
+        answer: 'Returns are accepted within 5 days for unused items in original condition. Defective or damaged items are eligible for replacement or refund per our policy.',
       },
       {
         question: 'How do I request a return?',
