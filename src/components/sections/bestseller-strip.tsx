@@ -18,7 +18,7 @@ function BestsellerStrip({ products }: { products: CatalogProduct[] }) {
       <Container>
 
         {/* Section header */}
-        <div className="mb-14 max-w-2xl">
+        <div className="mb-10 max-w-2xl">
           <p className="mb-4 font-heading text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-primary)]">
             Customer Favourites
           </p>

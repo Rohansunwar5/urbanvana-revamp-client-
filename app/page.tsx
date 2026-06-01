@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic"
 import { HeroSection } from "@/components/sections/hero-section"
+import { VideoShowcase } from "@/components/sections/video-showcase"
 import { BestsellerStrip } from "@/components/sections/bestseller-strip"
 import { CategorySection, type CategoryCardData } from "@/components/sections/category-grid"
 import { HowItWorks } from "@/components/sections/how-it-works"
@@ -54,6 +55,7 @@ export default async function HomePage() {
   return (
     <>
       <HeroSection />
+      <VideoShowcase />
       <BestsellerStrip products={bestsellers} />
       <CategorySection categories={categories} />
       <ProductCarousel products={featured.length > 0 ? featured : bestsellers} />
