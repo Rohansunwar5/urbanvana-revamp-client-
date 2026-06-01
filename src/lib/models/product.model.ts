@@ -18,6 +18,7 @@ const productSchema = new mongoose.Schema(
     shipping: { type: String, trim: true, default: '' },
     category: { type: mongoose.Schema.Types.ObjectId, required: true },
     images: { type: [String], default: [] },
+    videos: { type: [String], default: [] },
     badge: { type: badgeSchema, default: null },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     totalReviews: { type: Number, default: 0, min: 0 },
@@ -52,6 +53,7 @@ export interface IProduct extends mongoose.Document {
   shipping: string;
   category: mongoose.Types.ObjectId;
   images: string[];
+  videos: string[];
   badge: IProductBadge | null;
   rating: number;
   totalReviews: number;
