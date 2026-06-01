@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Minus, Plus, Truck, Phone, ShieldCheck, Star } from "lucide-react"
 import { toast } from "sonner"
 import { AddToCartBtn } from "@/components/product/add-to-cart-btn"
@@ -12,8 +12,32 @@ import type { ProductVariant, Review } from "@/lib/types/catalog"
 
 /* ── Image gallery ───────────────────────────────────────────────────── */
 
-export function PDPImageGallery({ images, name }: { images: string[]; name: string }) {
+export function PDPImageGallery({
+  images,
+  videos = [],
+  name,
+}: {
+  images: string[]
+  videos?: string[]
+  name: string
+}) {
+  type MediaItem = { type: 'image' | 'video'; url: string }
+  const mediaItems: MediaItem[] = [
+    ...images.map((url) => ({ type: 'image' as const, url })),
+    ...videos.map((url) => ({ type: 'video' as const, url })),
+  ]
   const [active, setActive] = useState(0)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  const handleSelect = (i: number) => {
+    if (mediaItems[active]?.type === 'video' && videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.currentTime = 0
+    }
+    setActive(i)
+  }
+
+  const activeItem = mediaItems[active] ?? mediaItems[0]
 
   return (
     <div className="flex flex-col gap-3">
@@ -24,27 +48,42 @@ export function PDPImageGallery({ images, name }: { images: string[]; name: stri
       >
         <div className="absolute inset-0 flex items-center justify-center p-10">
           <div className="relative h-full w-full">
-            <Image
-              src={getImageUrl(images[active])}
-              alt={name}
-              fill
-              sizes="(max-width: 768px) 100vw, 55vw"
-              className="object-contain transition-opacity duration-200"
-              style={{ mixBlendMode: "multiply" }}
-              priority
-            />
+            {activeItem?.type === 'video' ? (
+              // eslint-disable-next-line jsx-a11y/media-has-caption
+              <video
+                ref={videoRef}
+                key={activeItem.url}
+                src={activeItem.url}
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <Image
+                src={getImageUrl(activeItem?.url ?? '')}
+                alt={name}
+                fill
+                sizes="(max-width: 768px) 100vw, 55vw"
+                className="object-contain transition-opacity duration-200"
+                style={{ mixBlendMode: "multiply" }}
+                priority
+              />
+            )}
           </div>
         </div>
       </div>
 
       {/* Thumbnails */}
-      {images.length > 1 && (
+      {mediaItems.length > 1 && (
         <div className="flex gap-2">
-          {images.map((src, i) => (
+          {mediaItems.map((item, i) => (
             <button
               key={i}
-              onClick={() => setActive(i)}
-              aria-label={`View image ${i + 1}`}
+              onClick={() => handleSelect(i)}
+              aria-label={`View ${item.type} ${i + 1}`}
               className={[
                 "relative h-16 w-16 shrink-0 overflow-hidden rounded-[8px] border transition-all duration-150",
                 active === i
@@ -53,14 +92,24 @@ export function PDPImageGallery({ images, name }: { images: string[]; name: stri
               ].join(" ")}
               style={{ backgroundColor: "#ffffff" }}
             >
-              <Image
-                src={getImageUrl(src)}
-                alt={`${name} view ${i + 1}`}
-                fill
-                sizes="64px"
-                className="object-contain p-2"
-                style={{ mixBlendMode: "multiply" }}
-              />
+              {item.type === 'video' ? (
+                // eslint-disable-next-line jsx-a11y/media-has-caption
+                <video
+                  src={item.url}
+                  muted
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={getImageUrl(item.url)}
+                  alt={`${name} view ${i + 1}`}
+                  fill
+                  sizes="64px"
+                  className="object-contain p-2"
+                  style={{ mixBlendMode: "multiply" }}
+                />
+              )}
             </button>
           ))}
         </div>

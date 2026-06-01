@@ -141,6 +141,11 @@ export default async function ProductPage({
 
   /* Use the first active variant for pricing, fall back to first variant */
   const primaryVariant = variants.find((v) => v.isActive && v.stock > 0) ?? variants[0]
+
+  /* Videos: active variant videos take precedence, fall back to product videos */
+  const displayVideos: string[] =
+    (primaryVariant?.videos?.length ? primaryVariant.videos : product.videos) ?? []
+
   const price = primaryVariant?.price ?? 0
   const originalPrice = primaryVariant?.originalPrice
   const discount = originalPrice && originalPrice > price
@@ -222,7 +227,11 @@ export default async function ProductPage({
           <div className="grid gap-10 lg:grid-cols-[55fr_45fr] lg:gap-16">
             {/* Left — image gallery */}
             <div className="lg:sticky lg:top-[88px] lg:self-start">
-              <PDPImageGallery images={product.images} name={product.name} />
+              <PDPImageGallery
+                images={product.images}
+                videos={displayVideos}
+                name={product.name}
+              />
             </div>
 
             {/* Right — product info */}
