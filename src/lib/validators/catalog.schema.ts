@@ -57,6 +57,7 @@ export const createProductSchema = z.object({
   shipping: z.string().optional(),
   categoryId: z.string().min(1, 'Category is required'),
   images: z.array(z.string()).optional(),
+  videos: z.array(z.string()).optional(),
   badge: z.object({
     label: z.string().min(1, 'badge.label is required'),
     variant: z.enum(['primary', 'accent']),
@@ -74,6 +75,7 @@ export const updateProductSchema = z.object({
   materials: z.string().optional(),
   shipping: z.string().optional(),
   images: z.array(z.string()).optional(),
+  videos: z.array(z.string()).optional(),
   badge: z.object({
     label: z.string().min(1),
     variant: z.enum(['primary', 'accent']),
@@ -91,6 +93,7 @@ export const createVariantSchema = z.object({
   originalPrice: z.number().positive('originalPrice must be positive').optional(),
   stock: z.number().int().min(0, 'stock must be >= 0'),
   images: z.array(z.string()).optional(),
+  videos: z.array(z.string()).optional(),
   attributes: z.array(z.object({
     attributeId: z.string().min(1, 'Invalid attributeId'),
     valueId: z.string().min(1, 'Invalid valueId'),
@@ -112,6 +115,7 @@ export const updateVariantSchema = z.object({
   originalPrice: z.number().positive().optional(),
   stock: z.number().int().min(0).optional(),
   images: z.array(z.string()).optional(),
+  videos: z.array(z.string()).optional(),
   sku: z.string().optional(),
   isActive: z.boolean().optional(),
 });

@@ -46,6 +46,7 @@ export type ProductVariant = {
   stock: number
   attributes: ProductVariantAttribute[]
   images?: string[]
+  videos?: string[]
   isActive: boolean
 }
 
@@ -60,6 +61,7 @@ export type ProductDetail = {
   /** May be populated to { _id, name, slug } or remain as ObjectId string */
   category: { _id: string; name: string; slug: string } | string
   images: string[]
+  videos?: string[]
   badge: ProductBadge | null
   rating: number
   totalReviews: number
