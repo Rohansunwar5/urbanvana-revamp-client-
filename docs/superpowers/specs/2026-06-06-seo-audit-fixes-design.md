@@ -58,7 +58,8 @@ Confirmed decisions from brainstorming:
 ```ts
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.urbanvana.com"
 export const SITE_NAME = "Urbanvana"
-export const DEFAULT_OG_IMAGE = "/og/og-default.jpg" // 1200×630, added to /public/og/
+export const CONTACT_EMAIL = "urbanvana.co@gmail.com" // #18: kept for now; one-line swap when branded mailbox is ready
+export const DEFAULT_OG_IMAGE = "/hero-section.png" // existing lifestyle hero (tower on brand-green); landscape
 ```
 
 **Root layout (`app/layout.tsx`)** gains:
@@ -192,8 +193,8 @@ Each content page is reduced to *data + one layout call*, keeping files small an
 - Real branded email mailbox provisioning (#18) = ops; code just references the constant.
 - Branch off `main` before implementing (currently on `main`).
 
-## 9. Open questions for user
+## 9. Resolved decisions (were open questions)
 
-1. Branded contact email to use for #18? (`hello@urbanvana.com` / `support@urbanvana.com` / other)
-2. Should the blog live at `/learn/blog` (keeps learning content unified — recommended) or top-level `/blog`?
-3. OG default image — use an existing product lifestyle asset from `/public`, or is a new 1200×630 image being provided?
+1. **Contact email (#18):** Keep `urbanvana.co@gmail.com` for now. Wire `CONTACT_EMAIL` constant in `site.ts` so footer/contact/schema reference it → one-line swap when a branded mailbox is provisioned. (No visible change this round.)
+2. **Blog path:** `/learn/blog` — keeps educational content unified under `/learn` for topical clustering.
+3. **OG default image:** Use existing `/public/hero-section.png` (lifestyle tower shot on brand-green, landscape). Set as `DEFAULT_OG_IMAGE`.
