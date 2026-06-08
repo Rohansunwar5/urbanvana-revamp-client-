@@ -33,7 +33,7 @@ export default function HowItWorksPage() {
               What is Aeroponics?
             </h2>
             <p className="mb-4">
-              Aeroponics is a method of growing plants where roots are suspended in air inside a sealed chamber, and a fine nutrient-rich mist is sprayed onto them at regular intervals. Unlike hydroponics — where roots sit in water — or soil growing, aeroponic roots are always surrounded by oxygen-rich air. This constant oxygenation triggers faster nutrient absorption and dramatically accelerates plant growth.
+              Aeroponics a method of growing plants where roots are suspended in air inside a sealed chamber, and a fine nutrient-rich mist is sprayed onto them at regular intervals. Unlike hydroponics where roots sit in water or soil growing, aeroponic roots are always surrounded by oxygen-rich air. This constant oxygenation triggers faster nutrient absorption and dramatically accelerates plant growth.
             </p>
             <p>
               NASA pioneered aeroponic research in the 1990s to develop space-efficient food production for long-duration missions. The results were extraordinary: plants grew up to 70% faster than in soil with 95% less water. Today, Urbanvana has adapted this technology into a practical home system that anyone in India can use on a balcony, terrace, or kitchen counter.
