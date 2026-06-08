@@ -60,6 +60,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   other: {
     "facebook-domain-verification": "uxov3uj5bsatt2emt7ifv8jzmn5tle",
+    "google-site-verification": "r6TJp-G7Oo070olGSpzweNv3Kn304I6y95MwkDpj3ck",
   },
   icons: {
     icon: "/logo.png",
@@ -81,6 +82,13 @@ export default function RootLayout({
         krub.variable,
       )}
     >
+      {/* Google Analytics GA4 */}
+      <Script src="https://www.googletagmanager.com/gtag/js?id=G-3LEECJLLZT" strategy="afterInteractive" />
+      <Script id="ga4" strategy="afterInteractive">
+        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-3LEECJLLZT');`}
+      </Script>
+
+      {/* Meta Pixel */}
       <Script id="meta-pixel" strategy="afterInteractive">
         {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1660011611684181');fbq('track','PageView');`}
       </Script>
