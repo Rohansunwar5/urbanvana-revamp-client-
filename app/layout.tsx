@@ -10,6 +10,7 @@ import { CartProvider } from "@/lib/cart-context"
 import { CartDrawer } from "@/components/cart/cart-drawer"
 import { AuthProvider } from "@/lib/auth-context"
 import { WishlistProvider } from "@/lib/wishlist-context"
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, DEFAULT_OG_IMAGE } from "@/lib/site"
 
 /* Primary — Inter: clean geometric sans, headings + UI */
 const inter = Inter({
@@ -29,33 +30,41 @@ const krub = Krub({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Urbanvana — Grow Fresh, Every Day",
-    template: "%s | Urbanvana",
+    default: `${SITE_NAME} — Grow Fresh, Every Day`,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "Premium aeroponic towers, seeds, plants, and nutrients for growing fresh food at home. Zero soil. Pure results.",
+  description: SITE_DESCRIPTION,
   keywords: [
     "aeroponic tower",
+    "aeroponic tower India",
     "indoor growing",
     "hydroponics",
     "grow at home",
     "seeds",
     "nutrients",
     "vertical garden",
+    "soil-free farming",
   ],
+  alternates: {
+    canonical: SITE_URL,
+    languages: { "en-IN": SITE_URL },
+  },
   openGraph: {
     type: "website",
-    siteName: "Urbanvana",
-    title: "Urbanvana — Grow Fresh, Every Day",
-    description:
-      "Premium aeroponic towers, seeds, plants, and nutrients for growing fresh food at home.",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — Grow Fresh, Every Day`,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    locale: "en_IN",
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: `${SITE_NAME} — Aeroponic Tower` }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Urbanvana — Grow Fresh, Every Day",
-    description:
-      "Premium aeroponic towers, seeds, plants, and nutrients for growing fresh food at home.",
+    title: `${SITE_NAME} — Grow Fresh, Every Day`,
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
   },
   robots: { index: true, follow: true },
   other: {

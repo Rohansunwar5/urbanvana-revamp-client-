@@ -34,7 +34,7 @@ function useNavCategories() {
       .then((json) => {
         if (!json?.data) return
         const cats = (json.data as Array<{ slug: string; name: string; description?: string }>)
-          .map((c) => ({ label: c.name, href: `/shop?category=${c.slug}`, desc: c.description ?? "" }))
+          .map((c) => ({ label: c.name, href: `/shop/${c.slug}`, desc: c.description ?? "" }))
         setCategories(cats)
       })
       .catch(() => {})

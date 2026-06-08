@@ -42,29 +42,29 @@ const FOOTER_COLS = [
   {
     heading: "Shop",
     links: [
-      { label: "Aeroponic Towers",  href: "/shop?category=towers" },
-      { label: "Seeds & Plants",    href: "/shop?category=seeds"  },
-      { label: "Nutrients",         href: "/shop?category=nutrients" },
-      { label: "Starter Bundles",   href: "/shop?category=bundles" },
-      { label: "All Products",      href: "/shop"                 },
+      { label: "Aeroponic Towers",  href: "/shop/towers"   },
+      { label: "Seeds & Plants",    href: "/shop/seeds"    },
+      { label: "Nutrients",         href: "/shop/nutrients" },
+      { label: "Starter Bundles",   href: "/shop/bundles"  },
+      { label: "All Products",      href: "/shop"          },
     ],
   },
   {
     heading: "Learn",
     links: [
-      { label: "How Aeroponics Works", href: "/learn" },
-      { label: "Setup Guide",          href: "/learn" },
-      { label: "Growing Tips",         href: "/learn" },
-      { label: "Nutrient Guide",       href: "/learn" },
-      { label: "Learning Center",      href: "/learn" },
+      { label: "How Aeroponics Works", href: "/learn/how-aeroponics-works" },
+      { label: "Setup Guide",          href: "/learn/setup-guide"          },
+      { label: "Growing Tips",         href: "/learn/growing-tips"         },
+      { label: "Nutrient Guide",       href: "/learn/nutrient-guide"       },
+      { label: "Blog",                 href: "/learn/blog"                 },
     ],
   },
   {
     heading: "Support",
     links: [
-      { label: "Help & FAQ",      href: "/support" },
-      { label: "Shipping Info",   href: "/support" },
-      { label: "Contact Us",      href: "/support" },
+      { label: "Help & FAQ",      href: "/support/faq"      },
+      { label: "Shipping Info",   href: "/support/shipping" },
+      { label: "Contact Us",      href: "/contact"          },
     ],
   },
 ]
@@ -194,9 +194,9 @@ function Footer() {
             {/* Link columns */}
             {FOOTER_COLS.map((col) => (
               <div key={col.heading}>
-                <h3 className="font-body text-xs font-semibold uppercase tracking-widest text-white/40">
+                <p className="font-body text-xs font-semibold uppercase tracking-widest text-white/40">
                   {col.heading}
-                </h3>
+                </p>
                 <ul role="list" className="mt-4 space-y-2.5">
                   {col.links.map((link) => (
                     <li key={link.label}>

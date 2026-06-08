@@ -41,6 +41,18 @@ const nextConfig: NextConfig = {
   /* Compress responses */
   compress: true,
 
+  /* 301 redirects: old /shop/[slug] → /shop/p/[slug]
+     Excludes the /shop/p prefix itself and the four category slugs */
+  async redirects() {
+    return [
+      {
+        source: "/shop/:slug((?!p/)(?!towers|bundles|nutrients|seeds)[^/]+)",
+        destination: "/shop/p/:slug",
+        permanent: true,
+      },
+    ]
+  },
+
   /* Security & CORS headers */
   async headers() {
     return [

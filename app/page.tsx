@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic"
+import { OrganizationJsonLd } from "@/components/seo/json-ld"
 import { HeroSection } from "@/components/sections/hero-section"
 import { VideoShowcase } from "@/components/sections/video-showcase"
 import { BestsellerStrip } from "@/components/sections/bestseller-strip"
@@ -54,6 +55,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <OrganizationJsonLd />
       <HeroSection />
       <VideoShowcase />
       <BestsellerStrip products={bestsellers} />

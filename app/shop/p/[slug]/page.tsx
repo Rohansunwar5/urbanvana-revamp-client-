@@ -8,6 +8,7 @@ import { PDPImageGallery, PDPCartRow, PDPTabs } from "@/components/product/pdp-i
 import { PixelViewContent } from "@/components/pixel/pixel-view-content"
 import { getImageUrl } from "@/lib/utils/image"
 import type { ProductDetailResponse, CatalogProduct } from "@/lib/types/catalog"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import connectDB from "@/lib/db"
 import { ensureRedisConnected } from "@/lib/redis"
 import productService from "@/lib/services/catalog/product.service"
@@ -58,6 +59,9 @@ export async function generateMetadata({
   return {
     title: product.name,
     description: product.description,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.urbanvana.com"}/shop/p/${slug}`,
+    },
     openGraph: {
       title: `${product.name} | Urbanvana`,
       description: product.description,
@@ -190,6 +194,12 @@ export default async function ProductPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <BreadcrumbJsonLd items={[
+        { name: "Home", href: "/" },
+        { name: "Shop", href: "/shop" },
+        ...(categoryName && categorySlug ? [{ name: categoryName, href: `/shop/${categorySlug}` }] : []),
+        { name: product.name, href: `/shop/p/${product.slug}` },
+      ]} />
       <PixelViewContent
         productId={product._id?.toString() ?? product.slug}
         name={product.name}
@@ -212,7 +222,7 @@ export default async function ProductPage({
             {categoryName && (
               <>
                 <ChevronRight size={10} strokeWidth={1.5} className="text-[var(--color-text-muted)]/50" aria-hidden="true" />
-                <Link href={`/shop?category=${categorySlug}`} className="font-heading text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)] transition-colors duration-150 hover:text-[var(--color-primary)]">
+                <Link href={`/shop/${categorySlug}`} className="font-heading text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)] transition-colors duration-150 hover:text-[var(--color-primary)]">
                   {categoryName}
                 </Link>
               </>

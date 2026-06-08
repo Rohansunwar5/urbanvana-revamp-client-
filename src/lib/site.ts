@@ -1,0 +1,6 @@
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.urbanvana.com"
+export const SITE_NAME = "Urbanvana"
+export const SITE_DESCRIPTION = "Premium aeroponic towers, seeds, plants, and nutrients for growing fresh food at home. Zero soil. Pure results."
+export const DEFAULT_OG_IMAGE = "/hero-section.png"
+export const CONTACT_EMAIL = "urbanvana.co@gmail.com"
+export const CONTACT_PHONE = "+91 97127 79666"

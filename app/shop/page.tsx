@@ -309,13 +309,14 @@ function ShopPageInner() {
     fetchProducts(categorySlug, sort, page)
   }, [page, categorySlug, sort, fetchProducts])
 
-  /* Sync URL params */
+  /* Sync URL — clean category URLs for indexability */
   const handleCategory = (slug: string) => {
     setCategorySlug(slug)
-    const params = new URLSearchParams(searchParams.toString())
-    if (slug) params.set("category", slug)
-    else params.delete("category")
-    router.replace(`/shop?${params}`, { scroll: false })
+    if (slug) {
+      router.push(`/shop/${slug}`)
+    } else {
+      router.replace("/shop", { scroll: false })
+    }
   }
 
   const handleSort = (s: string) => {
