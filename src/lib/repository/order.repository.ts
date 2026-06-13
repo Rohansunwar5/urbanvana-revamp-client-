@@ -5,6 +5,7 @@ import orderModel, {
   IPayment,
   OrderStatus,
   ITrackingInfo,
+  ITimelineEntry,
 } from '@/lib/models/order.model';
 
 export interface ICreateOrderParams {
@@ -18,6 +19,8 @@ export interface ICreateOrderParams {
   billing: IBilling;
   couponId?: string | null;
   payment: IPayment;
+  status?: OrderStatus;
+  timeline?: ITimelineEntry[];
 }
 
 export class OrderRepository {

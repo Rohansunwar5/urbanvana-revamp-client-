@@ -3,11 +3,13 @@ import { BadRequestError } from '@/lib/errors/bad-request.error';
 import { CartRepository } from '@/lib/repository/cart.repository';
 import { OrderRepository } from '@/lib/repository/order.repository';
 import { ProductVariantRepository } from '@/lib/repository/productVariant.repository';
+import { CouponUsageRepository } from '@/lib/repository/couponUsage.repository';
 import { guestCartCacheManager, IGuestCartItem } from '@/lib/services/cache/entities';
 import { IOrderItem, IShippingAddress } from '@/lib/models/order.model';
 import { ICartCoupon } from '@/lib/models/cart.model';
 import { createRazorpayOrder } from '@/lib/utils/razorpay.util';
 import couponService from '@/lib/services/coupon.service';
+import mailService from '@/lib/services/mail.service';
 import config from '@/lib/config';
 import mongoose from 'mongoose';
 import { getEffectivePrice } from '@/lib/utils/flash-sale.util';
@@ -31,6 +33,7 @@ class CheckoutService {
     private readonly _cartRepository: CartRepository,
     private readonly _variantRepository: ProductVariantRepository,
     private readonly _orderRepository: OrderRepository,
+    private readonly _couponUsageRepository: CouponUsageRepository,
   ) {}
 
   async initiateCheckout(actor: ICheckoutActor, body: ICheckoutBody) {
@@ -88,8 +91,13 @@ class CheckoutService {
     }
 
     const discountedSubtotal = subtotal - couponDiscount;
-    const shippingCharge = discountedSubtotal >= config.FREE_SHIPPING_THRESHOLD ? 0 : config.STANDARD_SHIPPING_CHARGE;
-    const shippingTax = Math.round(shippingCharge * config.SHIPPING_TAX_RATE);
+    // Free shipping above the threshold; flat charge at/below it.
+    // A fully-discounted cart (e.g. 100%-off coupon) ships free too.
+    const shippingCharge =
+      discountedSubtotal <= 0 || discountedSubtotal > config.FREE_SHIPPING_THRESHOLD
+        ? 0
+        : config.STANDARD_SHIPPING_CHARGE;
+    const shippingTax = 0;
     const total = discountedSubtotal + shippingCharge + shippingTax;
 
     const orderId = `SOV-${generateOrderId()}`;
@@ -124,6 +132,69 @@ class CheckoutService {
       }
 
       return { orderId, paymentMethod: 'cod' as const };
+    }
+
+    // Fully-discounted order (e.g. 100%-off coupon): nothing to charge.
+    // Razorpay rejects ₹0 orders, so finalize the order directly as paid and
+    // run the same side effects a captured payment would trigger.
+    if (total <= 0) {
+      const order = await this._orderRepository.create({
+        orderId,
+        userId: actor.userId ?? null,
+        customerEmail: body.customerEmail,
+        guestInfo: body.guestInfo ?? null,
+        sessionId: actor.userId ? null : actor.sessionId,
+        items: orderItems,
+        shippingAddress: body.shippingAddress,
+        billing: { subtotal, couponCode, couponDiscount, shippingCharge, shippingTax, total },
+        couponId,
+        payment: {
+          gateway: 'razorpay',
+          razorpayOrderId: null,
+          razorpayPaymentId: null,
+          razorpaySignature: null,
+          status: 'paid',
+          method: 'free',
+          paidAt: new Date(),
+        },
+        status: 'confirmed',
+        timeline: [{ status: 'confirmed', note: 'Order fully covered by coupon', timestamp: new Date() }],
+      });
+
+      await Promise.all(
+        orderItems.map(item =>
+          this._variantRepository.adjustStock(item.variantId.toString(), -item.qty),
+        ),
+      );
+
+      if (couponId && actor.userId) {
+        await Promise.all([
+          this._couponUsageRepository.create({
+            couponId,
+            userId: actor.userId,
+            orderId: order._id.toString(),
+          }),
+          couponService.incrementUsage(couponId),
+        ]);
+      } else if (couponId) {
+        await couponService.incrementUsage(couponId);
+      }
+
+      if (actor.userId) {
+        await this._cartRepository.clearItems(actor.userId);
+      } else {
+        await guestCartCacheManager.remove({ sessionId: actor.sessionId });
+      }
+
+      mailService
+        .sendOrderConfirmationEmail(body.customerEmail, {
+          orderId,
+          total,
+          items: orderItems,
+        })
+        .catch(() => null);
+
+      return { orderId, paymentMethod: 'free' as const };
     }
 
     const razorpayOrder = await createRazorpayOrder({
@@ -199,4 +270,5 @@ export default new CheckoutService(
   new CartRepository(),
   new ProductVariantRepository(),
   new OrderRepository(),
+  new CouponUsageRepository(),
 );

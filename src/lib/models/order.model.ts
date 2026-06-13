@@ -125,7 +125,7 @@ const billingSchema = new mongoose.Schema<IBilling>(
 const paymentSchema = new mongoose.Schema<IPayment>(
   {
     gateway: { type: String, default: 'razorpay' },
-    razorpayOrderId: { type: String, required: true },
+    razorpayOrderId: { type: String, default: null },
     razorpayPaymentId: { type: String, default: null },
     razorpaySignature: { type: String, default: null },
     status: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },

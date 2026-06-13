@@ -168,8 +168,10 @@ function CouponInput() {
 function OrderSummary() {
   const { items, subtotal, total, coupon, applyCoupon, removeCoupon, syncing } = useCart()
   const hasCoupon = coupon !== null
-  const shipping = (hasCoupon ? total : subtotal) >= 999 ? 0 : 99
-  const grandTotal = (hasCoupon ? total : subtotal) + shipping
+  const payable = hasCoupon ? total : subtotal
+  // Free shipping above ₹999 (and for fully-discounted carts); flat ₹100 otherwise.
+  const shipping = payable <= 0 || payable > 999 ? 0 : 100
+  const grandTotal = payable + shipping
 
   const [code, setCode] = useState("")
   const [error, setError] = useState("")
@@ -470,7 +472,9 @@ function AddressPicker({ onSelect }: { onSelect: (addr: AddressFields | null) =>
 
 /* ── Page ────────────────────────────────────────────────────────────── */
 
-type CheckoutResult = { paymentMethod: "online"; orderId: string; razorpayOrderId: string; razorpayKeyId: string; amountInPaise: number }
+type CheckoutResult =
+  | { paymentMethod: "online"; orderId: string; razorpayOrderId: string; razorpayKeyId: string; amountInPaise: number }
+  | { paymentMethod: "free"; orderId: string }
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -574,6 +578,16 @@ export default function CheckoutPage() {
 
       const result = json.data
 
+      // Fully-discounted order: backend already finalized it as paid. Skip Razorpay.
+      if (result.paymentMethod === "free") {
+        await clearCart()
+        const dest = isGuest
+          ? `/orders/${result.orderId}?email=${encodeURIComponent(body.customerEmail)}`
+          : `/orders/${result.orderId}`
+        router.push(dest)
+        return
+      }
+
       const razorpayReady = await loadRazorpay()
       if (!razorpayReady) {
         setApiError("Payment gateway failed to load. Please refresh and try again.")
@@ -634,7 +648,7 @@ export default function CheckoutPage() {
   }
 
   const cartTotal = coupon ? total : subtotal
-  const shipping = cartTotal >= 999 ? 0 : 99
+  const shipping = cartTotal <= 0 || cartTotal > 999 ? 0 : 100
 
   return (
     <section className="bg-[var(--color-bg-subtle)] py-10 md:py-16">
