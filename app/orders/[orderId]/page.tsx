@@ -214,6 +214,12 @@ export default function OrderConfirmationPage() {
       value: order.billing.total,
       currency: "INR",
       num_items: order.items.reduce((acc, i) => acc + i.qty, 0),
+      orderId: order.orderId,
+      userEmail: order.customerEmail,
+      userFirstName: order.shippingAddress.fullName.split(" ")[0],
+      userLastName: order.shippingAddress.fullName.split(" ").slice(1).join(" "),
+      userPhone: order.shippingAddress.phone,
+      userZip: order.shippingAddress.pincode,
     })
   }, [order])
 
