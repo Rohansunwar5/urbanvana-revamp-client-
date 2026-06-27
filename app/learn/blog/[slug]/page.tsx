@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { ChevronRight, Clock, ArrowLeft, Tag } from "lucide-react"
 import { pageMetadata } from "@/lib/seo"
-import { BreadcrumbJsonLd, ArticleJsonLd } from "@/components/seo/json-ld"
+import { BreadcrumbJsonLd, ArticleJsonLd, FaqJsonLd } from "@/components/seo/json-ld"
 import { Container } from "@/components/layout/container"
 import { BLOG_ARTICLES } from "@/content/blog"
 
@@ -78,7 +78,9 @@ export default async function BlogArticlePage({
         description={article.description}
         url={`/learn/blog/${article.slug}`}
         datePublished={article.datePublished}
+        dateModified={article.dateModified}
       />
+      {article.faq && <FaqJsonLd items={article.faq} />}
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="bg-[#002304] py-16 md:py-20">

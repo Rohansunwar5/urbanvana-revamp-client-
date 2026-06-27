@@ -8,7 +8,7 @@ import { PDPImageGallery, PDPCartRow, PDPTabs } from "@/components/product/pdp-i
 import { PixelViewContent } from "@/components/pixel/pixel-view-content"
 import { getImageUrl } from "@/lib/utils/image"
 import type { ProductDetailResponse, CatalogProduct } from "@/lib/types/catalog"
-import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/json-ld"
 import connectDB from "@/lib/db"
 import { ensureRedisConnected } from "@/lib/redis"
 import productService from "@/lib/services/catalog/product.service"
@@ -57,20 +57,20 @@ export async function generateMetadata({
   const { product } = data
   const image = getImageUrl(product.images[0])
   return {
-    title: product.name,
+    title: `${product.name} — Aeroponic Tower for Indian Homes`,
     description: product.description,
     alternates: {
       canonical: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.urbanvana.com"}/shop/p/${slug}`,
     },
     openGraph: {
-      title: `${product.name} | Urbanvana`,
+      title: `${product.name} — Aeroponic Tower for Indian Homes | Urbanvana`,
       description: product.description,
       images: [{ url: image, alt: product.name }],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.name} | Urbanvana`,
+      title: `${product.name} — Aeroponic Tower for Indian Homes | Urbanvana`,
       description: product.description,
       images: [image],
     },
@@ -163,6 +163,33 @@ export default async function ProductPage({
     typeof product.category === "object" ? product.category.slug : ""
 
 
+  const PRODUCT_FAQ = [
+    {
+      question: "What if the pump fails?",
+      answer: "The pump is timer-automated and tested before shipping. It runs on a 5-minute-on / 15-minute-off cycle that prevents overheating. Full setup support is available via WhatsApp and call.",
+    },
+    {
+      question: "Which vegetables can I grow?",
+      answer: "The tower grows 40+ varieties including coriander (dhaniya), spinach (palak), fenugreek (methi), curry leaves, mint (pudina), tulsi, lettuce, arugula, cherry tomatoes, chillies, and capsicum.",
+    },
+    {
+      question: "How long does setup take?",
+      answer: "Under 30 minutes from unboxing to first seeds planted. The tower ships fully assembled — fill the reservoir, mix nutrients, plant seeds. A complete setup guide is included in the box.",
+    },
+    {
+      question: "What is included in the kit?",
+      answer: "Tower body, 60L reservoir, pump with timer, net pots, Urbanvana nutrient mix (Part A and B), pH test strips, pH adjustment solution, coco disc starter plugs, and 6 types of seeds. Everything you need to start on day one.",
+    },
+    {
+      question: "Do I need gardening experience?",
+      answer: "No. The tower is designed for complete beginners. The automated pump and timer handle the watering cycle. You plant seeds, check the reservoir weekly, and harvest.",
+    },
+    {
+      question: "How long until my first harvest?",
+      answer: "Fast-growing crops like coriander and lettuce are ready in 14–21 days. Spinach and methi in 18–22 days. Cherry tomatoes take 50–60 days.",
+    },
+  ]
+
   const jsonLd = {
     "@context": "https://schema.org/",
     "@type": "Product",
@@ -200,6 +227,7 @@ export default async function ProductPage({
         ...(categoryName && categorySlug ? [{ name: categoryName, href: `/shop/${categorySlug}` }] : []),
         { name: product.name, href: `/shop/p/${product.slug}` },
       ]} />
+      <FaqJsonLd items={PRODUCT_FAQ} />
       <PixelViewContent
         productId={product._id?.toString() ?? product.slug}
         name={product.name}
@@ -361,6 +389,29 @@ export default async function ProductPage({
       </section>
 
       {/* ── Related products ─────────────────────────────────────────── */}
+      {/* ── FAQ section ──────────────────────────────────────────────── */}
+      <section
+        aria-label="Frequently asked questions"
+        className="border-t border-[var(--color-border-strong)] bg-[var(--color-bg)] py-12 md:py-16"
+      >
+        <Container>
+          <h2
+            className="mb-8 font-heading font-black uppercase leading-[0.95] tracking-tight text-[var(--color-ink)]"
+            style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)" }}
+          >
+            Frequently Asked Questions
+          </h2>
+          <dl className="divide-y divide-[var(--color-border-strong)]">
+            {PRODUCT_FAQ.map(({ question, answer }) => (
+              <div key={question} className="py-5">
+                <dt className="font-heading text-sm font-bold text-[var(--color-ink)]">{question}</dt>
+                <dd className="mt-2 font-body text-base leading-relaxed text-[var(--color-text-muted)]">{answer}</dd>
+              </div>
+            ))}
+          </dl>
+        </Container>
+      </section>
+
       {related.length > 0 && (
         <section
           aria-label="Related products"
